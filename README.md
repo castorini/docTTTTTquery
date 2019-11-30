@@ -1,5 +1,13 @@
 # docTTTTTquery
 
+docTTTTTquery is the latest version of doc2query family of document expansion models.
+The basic idea is to train a model, that when given an input document, generates questions that the document might answer (or more broadly, queries for which the document might be relevant).
+These predicted questions (or queries) are then appended to the original documents, which are then indexed as before.
+docTTTTTquery gets its name from the use of T5 as the expansion model.
+
+The primary advantage of this approach is that expensive neural inference is pushed to _indexing time_, which means that "bag of words" queries against an inverted index built on the augmented document collection are only slightly slower (due to longer documents) &mdash; but the retrieval results are _much_ better.
+Of course, these documents can be further reranked by another neural model in a multi-stage ranking architecture.
+
 ## Training T5
 
 The following command will train a T5-base model for 4k iterations to predict queries from documents. We assume you put the tsv training file in `gs://your_bucket/data/doc_query_pairs.train.tsv`. Also, please change `your_tpu_name`, `your_project_id`, and `your_bucket` accordingly.
