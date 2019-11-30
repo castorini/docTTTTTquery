@@ -34,7 +34,7 @@ File | Size | MD5 | Download
 ## Instalation
 
 T5 only works on TPUs (and consequently Google Cloud machines) so this installation must be performed on a Google Cloud instance.
-You first need to install t5:
+You first need to install t5 (please check the [original T5 repository](https://github.com/google-research/text-to-text-transfer-transformer) for updated installation instructions):
 ```
 pip install t5[gcp]
 ```
