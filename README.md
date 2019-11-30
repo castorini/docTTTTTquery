@@ -13,8 +13,8 @@ The results on the MS MARCO show that docTTTTTquery is as effective as the best 
 MSMARCO Passage Ranking Leaderboard (Nov 30th 2019) | Eval MRR@10 | Latency
 ------------------------------------- | :------: | :------:
 [BM25 + BERT](https://github.com/nyu-dl/dl4marco-bert) | 36.8 | 3500 ms
-docTTTTTquery (this code)             | 27.2 | 64 ms
 [best non-BERT](https://github.com/sebastian-hofstaetter/sigir19-neural-ir) | 27.7 | -
+docTTTTTquery (this code)             | 27.2 | 64 ms
 [doc2query](https://github.com/nyu-dl/dl4ir-doc2query)              | 21.8 | 61 ms
 [BM25](https://github.com/castorini/anserini/blob/master/docs/experiments-msmarco-passage.md)  | 18.6  | 55 ms
 
