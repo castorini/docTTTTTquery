@@ -38,6 +38,24 @@ File | Size | MD5 | Download
 `t5-base.zip` | 357 MB | `881d3ca87c307b3eac05fae855c79014` | [[GCS](https://storage.googleapis.com/doctttttquery_git/t5-base.zip)] [[Dropbox](https://www.dropbox.com/s/q1nye6wfsvf5sen/t5-base.zip)]
 `t5-large.zip` | 1.2 GB | `21c7e625210b0ae872679bc36ed92d44` | [[GCS](https://storage.googleapis.com/doctttttquery_git/t5-large.zip)] [[Dropbox](https://www.dropbox.com/s/gzq8r68uk38bmum/t5-large.zip)]
 
+## Installation
+
+T5 only works on TPUs (and consequently Google Cloud machines) so this installation must be performed on a Google Cloud instance.
+You first need to install t5 (please check the [original T5 repository](https://github.com/google-research/text-to-text-transfer-transformer) for updated installation instructions):
+```
+pip install t5[gcp]
+```
+
+You also need to install [Anserini](https://github.com/castorini/anserini) for indexing and retrieving documents:
+```
+sudo apt-get install maven
+git clone https://github.com/castorini/Anserini.git
+cd Anserini
+mvn clean package appassembler:assemble
+tar xvfz eval/trec_eval.9.0.4.tar.gz -C eval/ && cd eval/trec_eval.9.0.4 && make
+cd ../ndeval && make
+```
+
 ## Replicating docTTTTTquery with Anserini
 
 First, we provide instructions on how to replicate our docTTTTTquery runs with Anserini.
@@ -63,7 +81,7 @@ TODO
 
 ## Training T5
 
-The following command will train a T5-base model for 4k iterations to predict queries from documents. We assume you put the tsv training file in `gs://your_bucket/data/doc_query_pairs.train.tsv`. Also, please change `your_tpu_name`, `your_project_id`, and `your_bucket` accordingly.
+The following command will train a T5-base model for 4k iterations to predict queries from documents. We assume you put the tsv training file in `gs://your_bucket/data/doc_query_pairs.train.tsv`. Also, please change `your_tpu_name`, `your_project_id`, and `your_bucket` accordingly. . 
 
 ```
 t5_mesh_transformer  \
