@@ -8,6 +8,16 @@ docTTTTTquery gets its name from the use of T5 as the expansion model.
 The primary advantage of this approach is that expensive neural inference is pushed to _indexing time_, which means that "bag of words" queries against an inverted index built on the augmented document collection are only slightly slower (due to longer documents) &mdash; but the retrieval results are _much_ better.
 Of course, these documents can be further reranked by another neural model in a multi-stage ranking architecture.
 
+The results on the MS MARCO show that docTTTTTquery is as effective as the best non-BERT ranking model while increasing latency only slightly compared to vanila BM25:
+
+MSMARCO Passage Ranking Leaderboard (Nov 30th 2019) | Eval MRR@10 | Latency
+------------------------------------- | :------: | :------:
+BM25 + BERT (https://github.com/nyu-dl/dl4marco-bert) | 36.8 | 3500 ms
+docTTTTTquery (this code)             | 27.2 | 64 ms
+[best non-BERT] (https://github.com/sebastian-hofstaetter/sigir19-neural-ir) | 27.7 | -
+[doc2query](https://github.com/nyu-dl/dl4ir-doc2query)              | 21.8 | 61 ms
+[BM25](https://github.com/castorini/anserini/blob/master/docs/experiments-msmarco-passage.md)  | 18.6  | 55 ms
+
 ## Training T5
 
 The following command will train a T5-base model for 4k iterations to predict queries from documents. We assume you put the tsv training file in `gs://your_bucket/data/doc_query_pairs.train.tsv`. Also, please change `your_tpu_name`, `your_project_id`, and `your_bucket` accordingly.
