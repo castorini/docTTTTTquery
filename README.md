@@ -22,9 +22,9 @@ docTTTTTquery (this code)             | 27.2 | 64 ms
 
 We make the following data available for download:
 
-+ `doc_query_pairs.train.tsv`: ADD DESCRIPTION
-+ `msmarco_docs.txt.zip`: ADD DESCRIPTION
-+ `predicted_queries_topk_sampling.zip`: 80 predicted queries for each MS MARCO passage, using top-_k_ sampling.
++ `doc_query_pairs.train.tsv`: Approximately 500,000 pairs of document-query pairs used to train the model.
++ `msmarco_docs.txt.zip`: All documents (8.8M) in the MS MARCO corpus.
++ `predicted_queries_topk_sampling.zip`: 80 predicted queries for each MS MARCO passage, using T5-base and top-_k_ sampling.
 + `t5-base.zip`: trained T5 model used for generating the expansions.
 + `t5-large.zip`: larger trained T5 model; we didn't find the output to be any better.
 
