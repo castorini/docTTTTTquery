@@ -46,7 +46,7 @@ You first need to install t5 (please check the [original T5 repository](https://
 pip install t5[gcp]
 ```
 
-You also need to install [Anserini](https://github.com/castorini/anserini) for indexing and retrieving documents:
+You also need to install [Anserini](https://github.com/castorini/anserini), a search engine framework that will index and retrieve documents:
 ```
 sudo apt-get install maven
 git clone https://github.com/castorini/Anserini.git
@@ -63,11 +63,11 @@ First, we provide instructions on how to replicate our docTTTTTquery runs with A
 Download `predicted_queries_topk_sampling.zip` using one of the options above.
 This file contains 80 sampled queries draw with the top-_k_ sampling decoder.
 
-Before appending the sampled queries to the documents, we need to concatenate them into a file that will contain all the samples for the same document in a single line:
+Before appending the sampled queries to the documents, we need to concatenate them into a file that will contain all the samples for the same document in a single line. We will concatenate only the first 40 samples as there no gain when using 80 samples (we, however, provide 80 samples in case researchers want to use this data for other purposes):
 ```
 for i in {000..017}; do
     echo "Processing chunk $i"
-    paste -d" " predicted_queries_topk_sample???.txt${i}-1004000 \
+    paste -d" " predicted_queries_topk_sample0[0-3]?.txt${i}-1004000 \
     > predicted_queries_topk.txt${i}-1004000
 done
 
