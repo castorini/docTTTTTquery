@@ -10,7 +10,7 @@ Of course, these documents can be further reranked by another neural model in a 
 
 The results on the MS MARCO show that docTTTTTquery is as effective as the best non-BERT ranking model while increasing latency (time to retrieve 1000 docs per query) only slightly compared to vanila BM25:
 
-MSMARCO Passage Ranking Leaderboard (Nov 30th 2019) | Eval MRR@10 | Latency
+MS MARCO Passage Ranking Leaderboard (Nov 30th 2019) | Eval MRR@10 | Latency
 ------------------------------------- | :------: | ------:
 [BM25 + BERT](https://github.com/nyu-dl/dl4marco-bert) | 36.8 | 3500 ms
 [best non-BERT](https://github.com/sebastian-hofstaetter/sigir19-neural-ir) | 27.7 | -
