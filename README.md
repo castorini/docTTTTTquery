@@ -76,7 +76,10 @@ cat predicted_queries_topk.txt???-1004000 > predicted_queries_topk.txt-1004000
 
 We can now append those queries to the original documents:
 ```
-TODO
+python convert_collection_to_jsonl.py \
+    --collection_path=collection.tsv \
+    --predictions=predicted_queries_topk.txt-1004000 \
+    --output_folder=./docs
 ```
 
 ## Training T5
