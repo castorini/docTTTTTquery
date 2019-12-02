@@ -23,7 +23,7 @@ docTTTTTquery (this code)             | 27.2 | 64 ms
 We make the following data available for download:
 
 + `doc_query_pairs.train.tsv`: Approximately 500,000 pairs of document-query pairs used to train the model.
-+ `msmarco_docs.txt.zip`: All documents (8.8M) in the MS MARCO corpus.
++ `collection.tar.gz`: All documents (8.8M) in the MS MARCO corpus. In the tsv, the first column is the document id and the second is the document text.
 + `predicted_queries_topk_sampling.zip`: 80 predicted queries for each MS MARCO passage, using T5-base and top-_k_ sampling.
 + `t5-base.zip`: trained T5 model used for generating the expansions.
 + `t5-large.zip`: larger trained T5 model; we didn't find the output to be any better.
@@ -33,7 +33,7 @@ Download and verify the above files from the below table:
 File | Size | MD5 | Download
 :----|-----:|:----|:-----
 `doc_query_pairs.train.tsv` | 197 MB | `aa673014f93d43837ca4525b9a33422c` | [[GCS](https://storage.googleapis.com/doctttttquery_git/doc_query_pairs.train.tsv)]
-`msmarco_docs.txt.zip` | 961 MB | `dff69f506ffb1ea84f3e39cd071ee251` | [[GCS](https://storage.googleapis.com/doctttttquery_git/msmarco_docs.txt.zip)] 
+`collection.tar.gz` | 987 MB | `` | [[GCS](https://storage.googleapis.com/doctttttquery_git/collection.tar.gz)] 
 `predicted_queries_topk_sampling.zip` | 7.9 GB | `8bb33ac317e76385d5047322db9b9c34` | [[GCS](https://storage.cloud.google.com/doctttttquery_git/predicted_queries_topk_sampling.zip)] [[Dropbox](https://www.dropbox.com/s/uzkvv4gpj3a596a/predicted_queries_topk_sampling.zip)]
 `t5-base.zip` | 357 MB | `881d3ca87c307b3eac05fae855c79014` | [[GCS](https://storage.googleapis.com/doctttttquery_git/t5-base.zip)] [[Dropbox](https://www.dropbox.com/s/q1nye6wfsvf5sen/t5-base.zip)]
 `t5-large.zip` | 1.2 GB | `21c7e625210b0ae872679bc36ed92d44` | [[GCS](https://storage.googleapis.com/doctttttquery_git/t5-large.zip)] [[Dropbox](https://www.dropbox.com/s/gzq8r68uk38bmum/t5-large.zip)]
@@ -60,11 +60,13 @@ cd ../ndeval && make
 
 First, we provide instructions on how to replicate our docTTTTTquery runs with Anserini.
 
-Download `predicted_queries_topk_sampling.zip` using one of the options above.
-This file contains 80 sampled queries draw with the top-_k_ sampling decoder.
+Download `collection.tar.gz` and `predicted_queries_topk_sampling.zip` using one of the options above.
+The former file contains 80 sampled queries draw with the top-_k_ sampling decoder.
 
-Before appending the sampled queries to the documents, we need to concatenate them into a file that will contain all the samples for the same document in a single line. We will concatenate only the first 40 samples as there no gain when using 80 samples (we, however, provide 80 samples in case researchers want to use this data for other purposes):
+Before appending the sampled queries to the documents, we need to concatenate them into a file that will contain all the samples for the same document in a single line. We will concatenate only the first 40 samples as there is no gain when using 80 samples (nevertheless, we provide 80 samples in case researchers want to use this data for other purposes):
 ```
+unzip predicted_queries_topk_sampling.zip
+
 for i in {000..017}; do
     echo "Processing chunk $i"
     paste -d" " predicted_queries_topk_sample0[0-3]?.txt${i}-1004000 \
@@ -76,6 +78,8 @@ cat predicted_queries_topk.txt???-1004000 > predicted_queries_topk.txt-1004000
 
 We can now append those queries to the original documents:
 ```
+tar -xvf collection.tar.gz
+
 python convert_collection_to_jsonl.py \
     --collection_path=collection.tsv \
     --predictions=predicted_queries_topk.txt-1004000 \
