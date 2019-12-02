@@ -109,8 +109,8 @@ t5_mesh_transformer  \
   --gin_param="tokens_per_batch = 131072"
 ```
 
-## Inference
-Before predicting queries from passages, we need to prepare an input file that contains one passage text per line. We achieve this by extracting the second column of `collection.tsv`:
+## Predicting Queries from Passages
+We first need to prepare an input file that contains one passage text per line. We achieve this by extracting the second column of `collection.tsv`:
 ```
 cut -f1 collection.tsv > input_docs.txt
 ```
