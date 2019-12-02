@@ -114,7 +114,7 @@ We first need to prepare an input file that contains one passage text per line. 
 ```
 cut -f1 collection.tsv > input_docs.txt
 ```
-We also need to split the file into smaller files (each with 1M lines) to tensorflow complaining that proto arrays can only have 2GB:
+We also need to split the file into smaller files (each with 1M lines) to tensorflow avoid complaining that proto arrays can only have 2GB:
 ```
 split --suffix-length 2 --numeric-suffixes --lines 1000000 input_docs.txt input_docs.txt
 ```
