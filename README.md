@@ -8,7 +8,7 @@ docTTTTTquery gets its name from the use of T5 as the expansion model.
 The primary advantage of this approach is that expensive neural inference is pushed to _indexing time_, which means that "bag of words" queries against an inverted index built on the augmented document collection are only slightly slower (due to longer documents) &mdash; but the retrieval results are _much_ better.
 Of course, these documents can be further reranked by another neural model in a multi-stage ranking architecture.
 
-The results on the MS MARCO show that docTTTTTquery is as effective as the best non-BERT ranking model while increasing latency (time to retrieve 1000 docs per query) only slightly compared to vanila BM25:
+The results on the MS MARCO show that docTTTTTquery is way more effective than doc2query and as effective as the best non-BERT ranking model while increasing latency (time to retrieve 1000 docs per query) only slightly compared to vanila BM25:
 
 MS MARCO Passage Ranking Leaderboard (Nov 30th 2019) | Eval MRR@10 | Latency
 ------------------------------------- | :------: | ------:
