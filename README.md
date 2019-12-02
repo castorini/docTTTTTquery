@@ -22,8 +22,8 @@ docTTTTTquery (this code)             | 27.2 | 64 ms
 
 We make the following data available for download:
 
-+ `doc_query_pairs.train.tsv`: Approximately 500,000 pairs of document-query pairs used to train the model.
-+ `collection.tar.gz`: All documents (8.8M) in the MS MARCO corpus. In the tsv, the first column is the document id and the second is the document text.
++ `doc_query_pairs.train.tsv`: Approximately 500,000 pairs of passage-query pairs used to train the model.
++ `collection.tar.gz`: All passages (8,841,823) in the MS MARCO corpus. In the tsv, the first column is the passage id and the second is the passage text.
 + `predicted_queries_topk_sampling.zip`: 80 predicted queries for each MS MARCO passage, using T5-base and top-_k_ sampling.
 + `t5-base.zip`: trained T5 model used for generating the expansions.
 + `t5-large.zip`: larger trained T5 model; we didn't find the output to be any better.
@@ -46,7 +46,7 @@ You first need to install t5 (please check the [original T5 repository](https://
 pip install t5[gcp]
 ```
 
-You also need to install [Anserini](https://github.com/castorini/anserini), a search engine framework that will index and retrieve documents:
+You also need to install [Anserini](https://github.com/castorini/anserini), a search engine framework that will index and retrieve passages:
 ```
 sudo apt-get install maven
 git clone https://github.com/castorini/Anserini.git
@@ -63,7 +63,7 @@ First, we provide instructions on how to replicate our docTTTTTquery runs with A
 Download `collection.tar.gz` and `predicted_queries_topk_sampling.zip` using one of the options above.
 The former file contains 80 sampled queries draw with the top-_k_ sampling decoder.
 
-Before appending the sampled queries to the documents, we need to concatenate them into a file that will contain all the samples for the same document in a single line. We will concatenate only the first 40 samples as there is no gain when using 80 samples (nevertheless, we provide 80 samples in case researchers want to use this data for other purposes):
+Before appending the sampled queries to the passages, we need to concatenate them. The command below creates a file that contains 40 concatenated samples per line and 8,841,823 lines, one for each passage in the corpus. We will concatenate only the first 40 samples as there is no gain when using 80 samples (nevertheless, we provide 80 samples in case researchers want to use this data for other purposes).
 ```
 unzip predicted_queries_topk_sampling.zip
 
@@ -76,7 +76,7 @@ done
 cat predicted_queries_topk.txt???-1004000 > predicted_queries_topk.txt-1004000
 ```
 
-We can now append those queries to the original documents:
+We can now append those queries to the original passages:
 ```
 tar -xvf collection.tar.gz
 
@@ -88,13 +88,13 @@ python convert_collection_to_jsonl.py \
 
 ## Training T5
 
-The following command will train a T5-base model for 4k iterations to predict queries from documents. We assume you put the tsv training file in `gs://your_bucket/data/doc_query_pairs.train.tsv`. Also, please change `your_tpu_name`, `your_project_id`, and `your_bucket` accordingly. . 
+The following command will train a T5-base model for 4k iterations to predict queries from passages. We assume you put the tsv training file in `gs://your_bucket/data/doc_query_pairs.train.tsv`. Also, please change `your_tpu_name`, `your_tpu_zone`, `your_project_id`, and `your_bucket` accordingly.
 
 ```
 t5_mesh_transformer  \
   --tpu="your_tpu_name" \
   --gcp_project="your_project_id" \
-  --tpu_zone="us-central1-b" \
+  --tpu_zone="your_tpu_zone" \
   --model_dir="gs://your_bucket/models/" \
   --gin_param="init_checkpoint = 'gs://t5-data/pretrained_models/base/model.ckpt-999900'" \
   --gin_file="dataset.gin" \
@@ -110,6 +110,41 @@ t5_mesh_transformer  \
 ```
 
 ## Inference
-TODO
+Before predicting queries from passages, we need to prepare an input file that contains one passage text per line. We achieve this by extracting the second column of `collection.tsv`:
+```
+cut -f1 collection.tsv > input_docs.txt
+```
+We also need to split the file into smaller files (each with 1M lines) to tensorflow complaining that proto arrays can only have 2GB:
+```
+split --suffix-length 2 --numeric-suffixes --lines 1000000 input_docs.txt input_docs.txt
+```
+
+We now upload the files to Google Cloud Storage:
+```
+gsutil cp input_docs.txt?? gs://your_bucket/data/
+```
+
+We are now ready to predict queries from passages. Remember to replace `your_tpu`, `your_tpu_zone`, `your_project_id` and `your_bucket` with your values. Note that the command below will only sample one query per passage. If you want multiple samples, you will need to repeat this process multiple times (remember to replace `decode_from_file.output_filename` with a new filename for each sample).
+```
+for ITER in {00..09}; do
+    t5_mesh_transformer \
+      --tpu="your_tpu" \
+      --gcp_project="your_project_id" \
+      --tpu_zone="your_tpu_zone" \
+      --model_dir="gs://your_bucket/models/" \
+      --gin_file="gs://neuralresearcher_data/t5-data/pretrained_models/base/operative_config.gin" \
+      --gin_file="infer.gin" \
+      --gin_file="sample_decode.gin" \
+      --gin_param="utils.tpu_mesh_shape.tpu_topology = '2x2'" \
+      --gin_param="infer_checkpoint_step = 1004000" \
+      --gin_param="utils.run.sequence_length = {'inputs': 512, 'targets': 64}" \
+      --gin_param="Bitransformer.decode.max_decode_length = 64" \
+      --gin_param="decode_from_file.input_filename = 'gs://your_bucket/data/input_docs.txt$ITER'" \
+      --gin_param="decode_from_file.output_filename = 'gs://your_bucket/data/predicted_queries_topk_sample.txt$ITER'" \
+      --gin_param="tokens_per_batch = 131072" \
+      --gin_param="Bitransformer.decode.temperature = 1.0" \
+      --gin_param="Unitransformer.sample_autoregressive.sampling_keep_top_k = 10"
+done
+```
 
 
