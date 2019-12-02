@@ -40,7 +40,8 @@ File | Size | MD5 | Download
 
 ## Installation
 
-T5 only works on TPUs (and consequently Google Cloud machines) so this installation must be performed on a Google Cloud instance.
+Note: if you plan to train or run inference with T5, keep in mind that it only works on TPUs (and consequently Google Cloud machines) so this installation must be performed on a Google Cloud instance. If you only want to reproduce our results, you only need to install the search engine framework (Anserini), described below.
+
 You first need to install t5 (please check the [original T5 repository](https://github.com/google-research/text-to-text-transfer-transformer) for updated installation instructions):
 ```
 pip install t5[gcp]
