@@ -8,7 +8,7 @@ docTTTTTquery gets its name from the use of T5 as the expansion model.
 The primary advantage of this approach is that expensive neural inference is pushed to _indexing time_, which means that "bag of words" queries against an inverted index built on the augmented document collection are only slightly slower (due to longer documents) &mdash; but the retrieval results are _much_ better.
 Of course, these documents can be further reranked by another neural model in a multi-stage ranking architecture.
 
-The results on the MS MARCO show that docTTTTTquery is way more effective than doc2query and as effective as the best non-BERT ranking model while increasing latency (time to retrieve 1000 docs per query) only slightly compared to vanila BM25:
+The results on the MS MARCO show that docTTTTTquery is way more effective than doc2query and as effective as the best non-BERT ranking model while increasing latency (time to retrieve 1000 docs per query) only slightly compared to vanilla BM25:
 
 MS MARCO Passage Ranking Leaderboard (Nov 30th 2019) | Eval MRR@10 | Latency
 ------------------------------------- | :------: | ------:
@@ -23,7 +23,7 @@ docTTTTTquery (this code)             | 27.2 | 64 ms
 We make the following data available for download:
 
 + `doc_query_pairs.train.tsv`: Approximately 500,000 pairs of passage-query pairs used to train the model.
-+ `collection.tar.gz`: All passages (8,841,823) in the MS MARCO corpus. In the tsv, the first column is the passage id and the second is the passage text.
++ `collection.tar.gz`: All passages (8,841,823) in the MS MARCO corpus. In this tsv file, the first column is the passage id and the second is the passage text.
 + `predicted_queries_topk_sampling.zip`: 80 predicted queries for each MS MARCO passage, using T5-base and top-_k_ sampling.
 + `t5-base.zip`: trained T5 model used for generating the expansions.
 + `t5-large.zip`: larger trained T5 model; we didn't find the output to be any better.
@@ -40,7 +40,7 @@ File | Size | MD5 | Download
 
 ## Installation
 
-Note: if you plan to train or run inference with T5, keep in mind that it only works on TPUs (and consequently Google Cloud machines) so this installation must be performed on a Google Cloud instance. If you only want to reproduce our results, you only need to install the search engine framework (Anserini), described below.
+Note: if you plan to train or infer with T5, keep in mind that it only works on TPUs (and consequently Google Cloud machines), so this installation must be performed on a Google Cloud instance. If you only want to reproduce our results, you only need to install the search engine framework (Anserini), described below.
 
 You first need to install t5 (please check the [original T5 repository](https://github.com/google-research/text-to-text-transfer-transformer) for updated installation instructions):
 ```
@@ -119,7 +119,7 @@ We first need to prepare an input file that contains one passage text per line. 
 ```
 cut -f1 collection.tsv > input_docs.txt
 ```
-We also need to split the file into smaller files (each with 1M lines) to tensorflow avoid complaining that proto arrays can only have 2GB:
+We also need to split the file into smaller files (each with 1M lines) to avoid TensorFlow complaining that proto arrays can only have 2GB:
 ```
 split --suffix-length 2 --numeric-suffixes --lines 1000000 input_docs.txt input_docs.txt
 ```
