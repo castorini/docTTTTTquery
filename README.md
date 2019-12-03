@@ -87,6 +87,10 @@ python convert_collection_to_jsonl.py \
     --output_folder=./docs
 ```
 
+```
+TODO: ADD ANSERINI COMMANDS
+```
+
 ## Training T5
 
 The following command will train a T5-base model for 4k iterations to predict queries from passages. We assume you put the tsv training file in `gs://your_bucket/data/doc_query_pairs.train.tsv`. Also, please change `your_tpu_name`, `your_tpu_zone`, `your_project_id`, and `your_bucket` accordingly.
