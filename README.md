@@ -27,7 +27,7 @@ We make the following data available for download:
 + `qrels.dev.small.tsv`: 7,437 pairs of query relevant passage ids from the MS MARCO dev set. In this tsv file, the first column is the query id, and the third column is the passage id. The other two columns (second and fourth) are not used.
 + `collection.tar.gz`: All passages (8,841,823) in the MS MARCO corpus. In this tsv file, the first column is the passage id, and the second is the passage text.
 + `predicted_queries_topk_sampling.zip`: 80 predicted queries for each MS MARCO passage, using T5-base and top-_k_ sampling.
-+ `run.dev.small.tsv`:  Approximately 6,980,000 pairs of dev set queries and retrieved docs using the expanded documents + BM25. In this tsv file, the first column is the query id, the second column is the passage id, and the third column is the rank of the passage. There are 1000 documents per query in this file.
++ `run.dev.small.tsv`:  Approximately 6,980,000 pairs of dev set queries and retrieved passages using the passages expanded with docTTTTTquery + BM25. In this tsv file, the first column is the query id, the second column is the passage id, and the third column is the rank of the passage. There are 1000 passages per query in this file.
 + `t5-base.zip`: trained T5 model used for generating the expansions.
 + `t5-large.zip`: larger trained T5 model; we didn't find the output to be any better.
 
@@ -98,7 +98,7 @@ We will now create an index in Anserini for the 8,841,823 expanded docs:
 sh anserini/target/appassembler/bin/IndexCollection -collection JsonCollection -generator LuceneDocumentGenerator -threads 9 -input ./docs -index ./lucene-index
 ```
 
-Once the expanded documents are indexed, we can retrieve 1000 documents per query in MS MARCO dev set:
+Once the expanded passages are indexed, we can retrieve 1000 passages per query in MS MARCO dev set:
 ```
 python -u $HOME/anserini/src/main/python/msmarco/retrieve.py \
   --index ./lucene-index \
