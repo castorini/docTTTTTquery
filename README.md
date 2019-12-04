@@ -67,8 +67,7 @@ cd ../ndeval && make
 
 First, we provide instructions on how to replicate our docTTTTTquery runs with Anserini.
 
-Download `collection.tar.gz` and `predicted_queries_topk_sampling.zip` using one of the options above.
-The former file contains 80 sampled queries draw with the top-_k_ sampling decoder.
+Download `queries.dev.small.tsv`, `qrels.dev.small.tsv`, `collection.tar.gz`, and `predicted_queries_topk_sampling.zip` using one of the options above.
 
 Before appending the sampled queries to the passages, we need to concatenate them. The command below creates a file that contains 40 concatenated samples per line and 8,841,823 lines, one for each passage in the corpus. We will concatenate only the first 40 samples as there is no gain when using 80 samples (nevertheless, we provide 80 samples in case researchers want to use this data for other purposes).
 ```
