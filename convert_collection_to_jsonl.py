@@ -4,10 +4,6 @@ import os
 import argparse
 
 
-def convert_collection(args):
-
-
-
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Converts MSMARCO\'s tsv collection to Anserini jsonl '
