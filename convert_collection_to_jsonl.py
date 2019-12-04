@@ -28,7 +28,7 @@ if __name__ == '__main__':
             open(args.predictions) as f_pred:
         for i, line_doc, line_pred in enumerate(zip(f_corpus, f_pred)):
 
-            # Start writting to a new file whent the current one reached its
+            # Start writting to a new file when the current one reached its
             # maximum capacity.
             if i % args.max_docs_per_file == 0:
                 if i > 0:
