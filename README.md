@@ -87,8 +87,28 @@ python convert_collection_to_jsonl.py \
     --output_folder=./docs
 ```
 
+Indexing:
 ```
-TODO: ADD ANSERINI COMMANDS
+sh anserini/target/appassembler/bin/IndexCollection -collection JsonCollection -generator LuceneDocumentGenerator -threads 9 -input ./docs -index ./lucene-index
+```
+
+Once the expanded documents are index, we can now retrieved 1000 documents per query in MS MARCO dev set:
+```
+python -u $HOME/anserini/src/main/python/msmarco/retrieve.py \
+  --index ./lucene-index \
+  --qid_queries ./queries.dev.small.tsv \
+  --output ./run.dev.small.tsv \
+  --hits 1000
+```
+
+And evaluate the results using MS MARCO eval script:
+```
+python anserini/src/main/python/msmarco/msmarco_eval.py ./qrels.dev.small.tsv ./run.dev.small.tsv
+```
+
+The output should be something like this:
+```
+TODO
 ```
 
 ## Training T5
