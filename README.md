@@ -23,8 +23,11 @@ docTTTTTquery (this code)             | 27.2 | 64 ms
 We make the following data available for download:
 
 + `doc_query_pairs.train.tsv`: Approximately 500,000 pairs of passage-query pairs used to train the model.
-+ `collection.tar.gz`: All passages (8,841,823) in the MS MARCO corpus. In this tsv file, the first column is the passage id and the second is the passage text.
++ `queries.dev.small.tsv`: 6,980 queries from the MS MARCO dev set. In this tsv file, the first column is the query id, and the second is the query text.
++ `qrels.dev.small.tsv`: 7,437 pairs of query relevant passage ids from the MS MARCO dev set. In this tsv file, the first column is the query id, and the third column is the passage id. The other two columns (second and fourth) are not used.
++ `collection.tar.gz`: All passages (8,841,823) in the MS MARCO corpus. In this tsv file, the first column is the passage id, and the second is the passage text.
 + `predicted_queries_topk_sampling.zip`: 80 predicted queries for each MS MARCO passage, using T5-base and top-_k_ sampling.
++ `run.dev.small.tsv`:  Approximately 6,980,000 pairs of dev set queries and retrieved docs using the expanded documents + BM25. In this tsv file, the first column is the query id, the second column is the passage id, and the third column is the rank of the passage. There are 1000 documents per query in this file.
 + `t5-base.zip`: trained T5 model used for generating the expansions.
 + `t5-large.zip`: larger trained T5 model; we didn't find the output to be any better.
 
@@ -33,8 +36,11 @@ Download and verify the above files from the below table:
 File | Size | MD5 | Download
 :----|-----:|:----|:-----
 `doc_query_pairs.train.tsv` | 197 MB | `aa673014f93d43837ca4525b9a33422c` | [[GCS](https://storage.googleapis.com/doctttttquery_git/doc_query_pairs.train.tsv)]
+`queries.dev.small.tsv` | 283 KB | 41e980d881317a4a323129d482e9f5e5 | [[GCS](https://storage.googleapis.com/doctttttquery_git/queries.dev.small.tsv)]
+`qrels.dev.small.tsv` | 140 KB| 38a80559a561707ac2ec0f150ecd1e8a | [[GCS](https://storage.googleapis.com/doctttttquery_git/qrels.dev.small.tsv)]
 `collection.tar.gz` | 987 MB | `87dd01826da3e2ad45447ba5af577628` | [[GCS](https://storage.googleapis.com/doctttttquery_git/collection.tar.gz)] 
 `predicted_queries_topk_sampling.zip` | 7.9 GB | `8bb33ac317e76385d5047322db9b9c34` | [[GCS](https://storage.cloud.google.com/doctttttquery_git/predicted_queries_topk_sampling.zip)] [[Dropbox](https://www.dropbox.com/s/uzkvv4gpj3a596a/predicted_queries_topk_sampling.zip)]
+`run.dev.small.tsv` | 133 MB | `d6c09a6606a5ed9f1a300c258e1930b2` | [[GCS](https://storage.cloud.google.com/doctttttquery_git/run.dev.small.tsv)]
 `t5-base.zip` | 357 MB | `881d3ca87c307b3eac05fae855c79014` | [[GCS](https://storage.googleapis.com/doctttttquery_git/t5-base.zip)] [[Dropbox](https://www.dropbox.com/s/q1nye6wfsvf5sen/t5-base.zip)]
 `t5-large.zip` | 1.2 GB | `21c7e625210b0ae872679bc36ed92d44` | [[GCS](https://storage.googleapis.com/doctttttquery_git/t5-large.zip)] [[Dropbox](https://www.dropbox.com/s/gzq8r68uk38bmum/t5-large.zip)]
 
@@ -87,12 +93,12 @@ python convert_collection_to_jsonl.py \
     --output_folder=./docs
 ```
 
-Indexing:
+We will now create an index in Anserini for the 8,841,823 expanded docs:
 ```
 sh anserini/target/appassembler/bin/IndexCollection -collection JsonCollection -generator LuceneDocumentGenerator -threads 9 -input ./docs -index ./lucene-index
 ```
 
-Once the expanded documents are index, we can now retrieved 1000 documents per query in MS MARCO dev set:
+Once the expanded documents are indexed, we can retrieve 1000 documents per query in MS MARCO dev set:
 ```
 python -u $HOME/anserini/src/main/python/msmarco/retrieve.py \
   --index ./lucene-index \
@@ -101,14 +107,17 @@ python -u $HOME/anserini/src/main/python/msmarco/retrieve.py \
   --hits 1000
 ```
 
-And evaluate the results using MS MARCO eval script:
+We evaluate the results using the MS MARCO eval script:
 ```
 python anserini/src/main/python/msmarco/msmarco_eval.py ./qrels.dev.small.tsv ./run.dev.small.tsv
 ```
 
-The output should be something like this:
+The output should be similar to:
 ```
-TODO
+#####################
+MRR @10: 0.2767497271114737
+QueriesRanked: 6980
+#####################
 ```
 
 ## Training T5
