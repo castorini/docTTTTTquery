@@ -46,16 +46,12 @@ File | Size | MD5 | Download
 `t5-base.zip` | 357 MB | `881d3ca87c307b3eac05fae855c79014` | [[GCS](https://storage.googleapis.com/doctttttquery_git/t5-base.zip)] [[Dropbox](https://www.dropbox.com/s/q1nye6wfsvf5sen/t5-base.zip)]
 `t5-large.zip` | 1.2 GB | `21c7e625210b0ae872679bc36ed92d44` | [[GCS](https://storage.googleapis.com/doctttttquery_git/t5-large.zip)] [[Dropbox](https://www.dropbox.com/s/gzq8r68uk38bmum/t5-large.zip)]
 
-## Installation
+## Replicating docTTTTTquery with Anserini
 
-Note: if you plan to train or infer with T5, keep in mind that it only works on TPUs (and consequently Google Cloud machines), so this installation must be performed on a Google Cloud instance. If you only want to reproduce our results, you only need to install the search engine framework (Anserini), described below.
+We provide instructions on how to replicate our docTTTTTquery runs with the [Anserini](https://github.com/castorini/anserini) IR toolkit, using pre-generated expanded queries.
 
-You first need to install t5 (please check the [original T5 repository](https://github.com/google-research/text-to-text-transfer-transformer) for updated installation instructions):
-```
-pip install t5[gcp]
-```
+First, install Anserini (see its [homepage](https://github.com/castorini/anserini) for more details):
 
-You also need to install [Anserini](https://github.com/castorini/anserini), a search engine framework that will index and retrieve passages:
 ```
 sudo apt-get install maven
 git clone https://github.com/castorini/Anserini.git
@@ -65,11 +61,7 @@ tar xvfz eval/trec_eval.9.0.4.tar.gz -C eval/ && cd eval/trec_eval.9.0.4 && make
 cd ../ndeval && make
 ```
 
-## Replicating docTTTTTquery with Anserini
-
-First, we provide instructions on how to replicate our docTTTTTquery runs with Anserini.
-
-Download `queries.dev.small.tsv`, `qrels.dev.small.tsv`, `collection.tar.gz`, and `predicted_queries_topk_sampling.zip` using one of the options above.
+Next, download `queries.dev.small.tsv`, `qrels.dev.small.tsv`, `collection.tar.gz`, and `predicted_queries_topk_sampling.zip` using one of the options above.
 
 Before appending the sampled queries to the passages, we need to concatenate them.
 The commands below create a file that contains 40 concatenated samples per line and 8,841,823 lines, one for each passage in the corpus.
@@ -132,6 +124,13 @@ QueriesRanked: 6980
 ```
 
 ## Training T5
+
+Note: if you plan to train or infer with T5, keep in mind that it only works on TPUs (and consequently Google Cloud machines), so this installation must be performed on a Google Cloud instance. If you only want to reproduce our results, you only need to install the search engine framework (Anserini), described below.
+
+You first need to install t5 (please check the [original T5 repository](https://github.com/google-research/text-to-text-transfer-transformer) for updated installation instructions):
+```
+pip install t5[gcp]
+```
 
 The following command will train a T5-base model for 4k iterations to predict queries from passages. We assume you put the tsv training file in `gs://your_bucket/data/doc_query_pairs.train.tsv`. Also, please change `your_tpu_name`, `your_tpu_zone`, `your_project_id`, and `your_bucket` accordingly.
 
