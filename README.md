@@ -100,8 +100,8 @@ sh /path/to/anserini/target/appassembler/bin/IndexCollection \
 
 Once the expanded passages are indexed, we can retrieve 1000 passages per query in MS MARCO dev set:
 
-```
-python -u $HOME/anserini/src/main/python/msmarco/retrieve.py \
+```bash
+python /path/to/anserini/src/main/python/msmarco/retrieve.py \
   --index ./lucene-index \
   --qid_queries ./queries.dev.small.tsv \
   --output ./run.dev.small.tsv \
@@ -109,13 +109,15 @@ python -u $HOME/anserini/src/main/python/msmarco/retrieve.py \
 ```
 
 We evaluate the results using the MS MARCO eval script:
-```
-python anserini/src/main/python/msmarco/msmarco_eval.py \
+
+```bash
+python /path/to/anserini/main/python/msmarco/msmarco_eval.py \
   ./qrels.dev.small.tsv \
   ./run.dev.small.tsv
 ```
 
-The output should be similar to:
+The output should be:
+
 ```
 #####################
 MRR @10: 0.2767497271114737
