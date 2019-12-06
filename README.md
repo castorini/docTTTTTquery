@@ -14,10 +14,10 @@ The results on the MS MARCO show that docTTTTTquery is way more effective than d
 
 MS MARCO Passage Ranking Leaderboard (Nov 30th 2019) | Eval MRR@10 | Latency
 ------------------------------------- | :------: | ------:
-[BM25 + BERT](https://github.com/nyu-dl/dl4marco-bert) | 36.8 | 3500 ms
-[best non-BERT](https://github.com/sebastian-hofstaetter/sigir19-neural-ir) | 27.7 | -
+[BM25 + BERT](https://github.com/nyu-dl/dl4marco-bert) from [(Nogueira et al., 2019)](https://arxiv.org/abs/1904.08375) | 36.8 | 3500 ms
+FastText + Conv-KNRM (Single) [(Hofstätter et al. SIGIR 2019)](https://github.com/sebastian-hofstaetter/sigir19-neural-ir) (best non-BERT) | 27.7 | -
 docTTTTTquery (this code)             | 27.2 | 64 ms
-[doc2query](https://github.com/nyu-dl/dl4ir-doc2query)              | 21.8 | 61 ms
+doc2query [(Nogueira et al., 2019)](https://github.com/nyu-dl/dl4ir-doc2query)              | 21.8 | 61 ms
 [BM25](https://github.com/castorini/anserini/blob/master/docs/experiments-msmarco-passage.md)  | 18.6  | 55 ms
 
 ## Data and Trained Models
@@ -90,7 +90,7 @@ python convert_collection_to_jsonl.py \
     --output_folder=./docs
 ```
 
-We will now create an index in Anserini for the 8,841,823 expanded docs (replace `/path/to/anserini/` with actual location of Anserini):
+We will now create an index using Anserini for the 8,841,823 expanded docs (replace `/path/to/anserini/` with actual location of Anserini):
 
 ```bash
 sh /path/to/anserini/target/appassembler/bin/IndexCollection \
@@ -98,7 +98,7 @@ sh /path/to/anserini/target/appassembler/bin/IndexCollection \
   -threads 9 -input ./docs -index ./lucene-index
 ```
 
-Once the expanded passages are indexed, we can retrieve 1000 passages per query in MS MARCO dev set:
+Once the expanded passages are indexed, we can retrieve 1000 passages per query for the MS MARCO dev set:
 
 ```bash
 sh /path/to/anserini/target/appassembler/bin/SearchMsmarco \
@@ -106,13 +106,13 @@ sh /path/to/anserini/target/appassembler/bin/SearchMsmarco \
   -output ./run.dev.small.tsv -hits 1000
 ```
 
-We evaluate the results using the MS MARCO eval script:
+Finally, we evaluate the results using the MS MARCO eval script:
 
 ```bash
 python /path/to/anserini/src/main/python/msmarco/msmarco_eval.py ./qrels.dev.small.tsv ./run.dev.small.tsv
 ```
 
-The output should be:
+The results should be:
 
 ```
 #####################
