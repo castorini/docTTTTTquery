@@ -50,7 +50,7 @@ File | Size | MD5 | Download
 
 We provide instructions on how to replicate our docTTTTTquery runs with the [Anserini](https://github.com/castorini/anserini) IR toolkit, using pre-generated expanded queries.
 
-First, install Anserini (see its [homepage](https://github.com/castorini/anserini) for more details):
+First, install Anserini (see [homepage](https://github.com/castorini/anserini) for more details):
 
 ```
 sudo apt-get install maven
@@ -101,19 +101,15 @@ sh /path/to/anserini/target/appassembler/bin/IndexCollection \
 Once the expanded passages are indexed, we can retrieve 1000 passages per query in MS MARCO dev set:
 
 ```bash
-python /path/to/anserini/src/main/python/msmarco/retrieve.py \
-  --index ./lucene-index \
-  --qid_queries ./queries.dev.small.tsv \
-  --output ./run.dev.small.tsv \
-  --hits 1000
+sh /path/to/anserini/target/appassembler/bin/SearchMsmarco \
+  -index ./lucene-index -qid_queries ./queries.dev.small.tsv \
+  -output ./run.dev.small.tsv -hits 1000
 ```
 
 We evaluate the results using the MS MARCO eval script:
 
 ```bash
-python /path/to/anserini/main/python/msmarco/msmarco_eval.py \
-  ./qrels.dev.small.tsv \
-  ./run.dev.small.tsv
+python /path/to/anserini/src/main/python/msmarco/msmarco_eval.py ./qrels.dev.small.tsv ./run.dev.small.tsv
 ```
 
 The output should be:
