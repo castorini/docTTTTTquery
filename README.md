@@ -46,7 +46,7 @@ File | Size | MD5 | Download
 `t5-base.zip` | 357 MB | `881d3ca87c307b3eac05fae855c79014` | [[GCS](https://storage.googleapis.com/doctttttquery_git/t5-base.zip)] [[Dropbox](https://www.dropbox.com/s/q1nye6wfsvf5sen/t5-base.zip)]
 `t5-large.zip` | 1.2 GB | `21c7e625210b0ae872679bc36ed92d44` | [[GCS](https://storage.googleapis.com/doctttttquery_git/t5-large.zip)] [[Dropbox](https://www.dropbox.com/s/gzq8r68uk38bmum/t5-large.zip)]
 
-## Replicating docTTTTTquery with Anserini
+## Replicating docTTTTTquery Results with Anserini
 
 We provide instructions on how to replicate our docTTTTTquery runs with the [Anserini](https://github.com/castorini/anserini) IR toolkit, using pre-generated expanded queries.
 
@@ -123,37 +123,16 @@ QueriesRanked: 6980
 #####################
 ```
 
-## Training T5
+## T5 Inference: Predicting Queries from Passages
 
-Note: if you plan to train or infer with T5, keep in mind that it only works on TPUs (and consequently Google Cloud machines), so this installation must be performed on a Google Cloud instance. If you only want to reproduce our results, you only need to install the search engine framework (Anserini), described below.
+If you plan to train or run inference with T5, keep in mind that it only works on TPUs (and consequently Google Cloud machines), so this installation must be performed on a Google Cloud instance. If you only want to reproduce our results, you only need to install the search engine framework (Anserini), described below.
 
 You first need to install t5 (please check the [original T5 repository](https://github.com/google-research/text-to-text-transfer-transformer) for updated installation instructions):
+
 ```
 pip install t5[gcp]
 ```
 
-The following command will train a T5-base model for 4k iterations to predict queries from passages. We assume you put the tsv training file in `gs://your_bucket/data/doc_query_pairs.train.tsv`. Also, please change `your_tpu_name`, `your_tpu_zone`, `your_project_id`, and `your_bucket` accordingly.
-
-```
-t5_mesh_transformer  \
-  --tpu="your_tpu_name" \
-  --gcp_project="your_project_id" \
-  --tpu_zone="your_tpu_zone" \
-  --model_dir="gs://your_bucket/models/" \
-  --gin_param="init_checkpoint = 'gs://t5-data/pretrained_models/base/model.ckpt-999900'" \
-  --gin_file="dataset.gin" \
-  --gin_file="models/bi_v1.gin" \
-  --gin_file="gs://t5-data/pretrained_models/base/operative_config.gin" \
-  --gin_param="utils.tpu_mesh_shape.model_parallelism = 1" \
-  --gin_param="utils.tpu_mesh_shape.tpu_topology = '2x2'" \
-  --gin_param="utils.run.train_dataset_fn = @t5.models.mesh_transformer.tsv_dataset_fn" \
-  --gin_param="tsv_dataset_fn.filename = 'gs://your_bucket/data/doc_query_pairs.train.tsv'" \
-  --gin_file="learning_rate_schedules/constant_0_001.gin" \
-  --gin_param="run.train_steps = 1004000" \
-  --gin_param="tokens_per_batch = 131072"
-```
-
-## Predicting Queries from Passages
 We first need to prepare an input file that contains one passage text per line. We achieve this by extracting the second column of `collection.tsv`:
 ```
 cut -f1 collection.tsv > input_docs.txt
@@ -189,6 +168,29 @@ for ITER in {00..09}; do
       --gin_param="Bitransformer.decode.temperature = 1.0" \
       --gin_param="Unitransformer.sample_autoregressive.sampling_keep_top_k = 10"
 done
+```
+
+## T5 Training: Creating a Prediction Model from Scratch
+
+The following command will train a T5-base model for 4k iterations to predict queries from passages. We assume you put the tsv training file in `gs://your_bucket/data/doc_query_pairs.train.tsv`. Also, please change `your_tpu_name`, `your_tpu_zone`, `your_project_id`, and `your_bucket` accordingly.
+
+```
+t5_mesh_transformer  \
+  --tpu="your_tpu_name" \
+  --gcp_project="your_project_id" \
+  --tpu_zone="your_tpu_zone" \
+  --model_dir="gs://your_bucket/models/" \
+  --gin_param="init_checkpoint = 'gs://t5-data/pretrained_models/base/model.ckpt-999900'" \
+  --gin_file="dataset.gin" \
+  --gin_file="models/bi_v1.gin" \
+  --gin_file="gs://t5-data/pretrained_models/base/operative_config.gin" \
+  --gin_param="utils.tpu_mesh_shape.model_parallelism = 1" \
+  --gin_param="utils.tpu_mesh_shape.tpu_topology = '2x2'" \
+  --gin_param="utils.run.train_dataset_fn = @t5.models.mesh_transformer.tsv_dataset_fn" \
+  --gin_param="tsv_dataset_fn.filename = 'gs://your_bucket/data/doc_query_pairs.train.tsv'" \
+  --gin_file="learning_rate_schedules/constant_0_001.gin" \
+  --gin_param="run.train_steps = 1004000" \
+  --gin_param="tokens_per_batch = 131072"
 ```
 
 
