@@ -71,11 +71,14 @@ First, we provide instructions on how to replicate our docTTTTTquery runs with A
 
 Download `queries.dev.small.tsv`, `qrels.dev.small.tsv`, `collection.tar.gz`, and `predicted_queries_topk_sampling.zip` using one of the options above.
 
-Before appending the sampled queries to the passages, we need to concatenate them. The command below creates a file that contains 40 concatenated samples per line and 8,841,823 lines, one for each passage in the corpus. We will concatenate only the first 40 samples as there is no gain when using 80 samples (nevertheless, we provide 80 samples in case researchers want to use this data for other purposes).
-```
+Before appending the sampled queries to the passages, we need to concatenate them.
+The commands below create a file that contains 40 concatenated samples per line and 8,841,823 lines, one for each passage in the corpus.
+We concatenate only the first 40 samples as there is only a tiny gain in MRR@10 when using 80 samples (nevertheless, we provide 80 samples in case researchers want to use this data for other purposes).
+
+```bash
 unzip predicted_queries_topk_sampling.zip
 
-for i in {000..017}; do
+for i in $(seq -f "%03g" 0 17); do
     echo "Processing chunk $i"
     paste -d" " predicted_queries_topk_sample0[0-3]?.txt${i}-1004000 \
     > predicted_queries_topk.txt${i}-1004000
@@ -84,8 +87,9 @@ done
 cat predicted_queries_topk.txt???-1004000 > predicted_queries_topk.txt-1004000
 ```
 
-We can now append those queries to the original passages:
-```
+We can now append those queries to the original MS MARCO passage collection:
+
+```bash
 tar -xvf collection.tar.gz
 
 python convert_collection_to_jsonl.py \
@@ -94,17 +98,16 @@ python convert_collection_to_jsonl.py \
     --output_folder=./docs
 ```
 
-We will now create an index in Anserini for the 8,841,823 expanded docs:
-```
-sh anserini/target/appassembler/bin/IndexCollection \
-  -collection JsonCollection \
-  -generator LuceneDocumentGenerator \
-  -threads 9 \
-  -input ./docs \
-  -index ./lucene-index
+We will now create an index in Anserini for the 8,841,823 expanded docs (replace `/path/to/anserini/` with actual location of Anserini):
+
+```bash
+sh /path/to/anserini/target/appassembler/bin/IndexCollection \
+  -collection JsonCollection -generator LuceneDocumentGenerator \
+  -threads 9 -input ./docs -index ./lucene-index
 ```
 
 Once the expanded passages are indexed, we can retrieve 1000 passages per query in MS MARCO dev set:
+
 ```
 python -u $HOME/anserini/src/main/python/msmarco/retrieve.py \
   --index ./lucene-index \
