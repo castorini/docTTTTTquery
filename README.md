@@ -157,7 +157,7 @@ for ITER in {00..09}; do
       --gcp_project="your_project_id" \
       --tpu_zone="your_tpu_zone" \
       --model_dir="gs://your_bucket/models/" \
-      --gin_file="gs://neuralresearcher_data/t5-data/pretrained_models/base/operative_config.gin" \
+      --gin_file="gs://t5-data/pretrained_models/base/operative_config.gin" \
       --gin_file="infer.gin" \
       --gin_file="sample_decode.gin" \
       --gin_param="utils.tpu_mesh_shape.tpu_topology = '2x2'" \
