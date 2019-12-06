@@ -26,7 +26,7 @@ if __name__ == '__main__':
     file_index = 0
     with open(args.collection_path) as f_corpus, \
             open(args.predictions) as f_pred:
-        for i, line_doc, line_pred in enumerate(zip(f_corpus, f_pred)):
+        for i, (line_doc, line_pred) in enumerate(zip(f_corpus, f_pred)):
 
             # Start writting to a new file when the current one reached its
             # maximum capacity.
