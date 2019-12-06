@@ -1,5 +1,7 @@
 # docTTTTTquery
 
+[Link to the paper](https://cs.uwaterloo.ca/~jimmylin/publications/Nogueira_Lin_2019_docTTTTTquery.pdf)
+
 docTTTTTquery is the latest version of doc2query family of document expansion models.
 The basic idea is to train a model, that when given an input document, generates questions that the document might answer (or more broadly, queries for which the document might be relevant).
 These predicted questions (or queries) are then appended to the original documents, which are then indexed as before.
