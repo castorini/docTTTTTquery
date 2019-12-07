@@ -1,14 +1,14 @@
 # docTTTTTquery
 
-docTTTTTquery is the latest version of doc2query family of document expansion models.
+docTTTTTquery is the latest version of the doc2query family of document expansion models.
 The basic idea is to train a model, that when given an input document, generates questions that the document might answer (or more broadly, queries for which the document might be relevant).
 These predicted questions (or queries) are then appended to the original documents, which are then indexed as before.
 docTTTTTquery gets its name from the use of T5 as the expansion model.
 
 The primary advantage of this approach is that expensive neural inference is pushed to _indexing time_, which means that "bag of words" queries against an inverted index built on the augmented document collection are only slightly slower (due to longer documents) &mdash; but the retrieval results are _much_ better.
-Of course, these documents can be further reranked by another neural model in a multi-stage ranking architecture.
+Of course, these documents can be further reranked by another neural model in a [multi-stage ranking architecture](https://arxiv.org/abs/1910.14424).
 
-The results on the MS MARCO passage retrieval task show that docTTTTTquery is much more effective than doc2query and (almost) as effective as the best non-BERT ranking model, while increasing query latency (time to retrieve 1000 docs per query) only slightly compared to vanilla BM25:
+The results on the [MS MARCO passage retrieval task](http://www.msmarco.org/leaders.aspx) show that docTTTTTquery is much more effective than doc2query and (almost) as effective as the best non-BERT ranking model, while increasing query latency (time to retrieve 1000 docs per query) only slightly compared to vanilla BM25:
 
 MS MARCO Passage Ranking Leaderboard (Nov 30th 2019) | Eval MRR@10 | Latency
 :------------------------------------ | :------: | ------:
@@ -29,10 +29,10 @@ Why's the paper so short? Check out [our proposal for micropublications](https:/
 
 We make the following data available for download:
 
-+ `doc_query_pairs.train.tsv`: Approximately 500,000 pairs of passage-query pairs used to train the model.
-+ `queries.dev.small.tsv`: 6,980 queries from the MS MARCO dev set. In this tsv file, the first column is the query id, and the second is the query text.
-+ `qrels.dev.small.tsv`: 7,437 pairs of query relevant passage ids from the MS MARCO dev set. In this tsv file, the first column is the query id, and the third column is the passage id. The other two columns (second and fourth) are not used.
-+ `collection.tar.gz`: All passages (8,841,823) in the MS MARCO corpus. In this tsv file, the first column is the passage id, and the second is the passage text.
++ `doc_query_pairs.train.tsv`: Approximately 500,000 passage-query pairs used to train the model.
++ `queries.dev.small.tsv`: 6,980 queries from the MS MARCO dev set. In this tsv file, the first column is the query id and the second is the query text.
++ `qrels.dev.small.tsv`: 7,437 pairs of query relevant passage ids from the MS MARCO dev set. In this tsv file, the first column is the query id and the third column is the passage id. The other two columns (second and fourth) are not used.
++ `collection.tar.gz`: All passages (8,841,823) in the MS MARCO passage corpus. In this tsv file, the first column is the passage id and the second is the passage text.
 + `predicted_queries_topk_sampling.zip`: 80 predicted queries for each MS MARCO passage, using T5-base and top-_k_ sampling.
 + `run.dev.small.tsv`:  Approximately 6,980,000 pairs of dev set queries and retrieved passages using the passages expanded with docTTTTTquery + BM25. In this tsv file, the first column is the query id, the second column is the passage id, and the third column is the rank of the passage. There are 1000 passages per query in this file.
 + `t5-base.zip`: trained T5 model used for generating the expansions.
@@ -53,7 +53,7 @@ File | Size | MD5 | Download
 
 ## Replicating Retrieval Results with Anserini
 
-We provide instructions on how to replicate our docTTTTTquery runs with the [Anserini](https://github.com/castorini/anserini) IR toolkit, using pre-generated expanded queries.
+We provide instructions on how to replicate our docTTTTTquery runs with the [Anserini](https://github.com/castorini/anserini) IR toolkit, using the predicted queries provided above.
 
 First, install Anserini (see [homepage](https://github.com/castorini/anserini) for more details):
 
@@ -95,7 +95,7 @@ python convert_collection_to_jsonl.py \
     --output_folder=./docs
 ```
 
-We will now create an index using Anserini for the 8,841,823 expanded docs (replace `/path/to/anserini/` with actual location of Anserini):
+Now, create an index using Anserini on the expanded passages (replace `/path/to/anserini/` with actual location of Anserini):
 
 ```bash
 sh /path/to/anserini/target/appassembler/bin/IndexCollection \
@@ -126,6 +126,8 @@ QueriesRanked: 6980
 #####################
 ```
 
+Voilà!
+
 ## T5 Inference: Predicting Queries from Passages
 
 Next, we provide instructions on how to use our trained T5 models to predict queries from new passages.
@@ -133,33 +135,39 @@ Note that T5 only works on TPUs (and consequently Google Cloud machines), so thi
 
 To begin, install T5 (check the [original T5 repository](https://github.com/google-research/text-to-text-transfer-transformer) for the latest installation instructions):
 
-```
+```bash
 pip install t5[gcp]
 ```
 
 We first need to prepare an input file that contains one passage text per line. We achieve this by extracting the second column of `collection.tsv`:
-```
+
+```bash
 cut -f1 collection.tsv > input_docs.txt
 ```
-We also need to split the file into smaller files (each with 1M lines) to avoid TensorFlow complaining that proto arrays can only have 2GB:
-```
+
+We also need to split the file into smaller files (each with 1M lines) to avoid TensorFlow complaining that proto arrays can only be 2GB at the most:
+
+```bash
 split --suffix-length 2 --numeric-suffixes --lines 1000000 input_docs.txt input_docs.txt
 ```
 
 We now upload the input docs to Google Cloud Storage:
-```
+
+```bash
 gsutil cp input_docs.txt?? gs://your_bucket/data/
 ```
 
 We also need to upload our trained t5-base model to GCS:
-```
+
+```bash
 wget https://storage.googleapis.com/doctttttquery_git/t5-base.zip
 unzip t5-base.zip
 gsutil cp model.ckpt-1004000* gs://your_bucket/models/
 ```
 
 We are now ready to predict queries from passages. Remember to replace `your_tpu`, `your_tpu_zone`, `your_project_id` and `your_bucket` with your values. Note that the command below will only sample one query per passage. If you want multiple samples, you will need to repeat this process multiple times (remember to replace `decode_from_file.output_filename` with a new filename for each sample).
-```
+
+```bash
 for ITER in {00..09}; do
     t5_mesh_transformer \
       --tpu="your_tpu" \
@@ -188,7 +196,7 @@ The following command will train a T5-base model for 4k iterations to predict qu
 We assume you put the tsv training file in `gs://your_bucket/data/doc_query_pairs.train.tsv` (download from above).
 Also, change `your_tpu_name`, `your_tpu_zone`, `your_project_id`, and `your_bucket` accordingly.
 
-```
+```bash
 t5_mesh_transformer  \
   --tpu="your_tpu_name" \
   --gcp_project="your_project_id" \
@@ -206,4 +214,3 @@ t5_mesh_transformer  \
   --gin_param="run.train_steps = 1004000" \
   --gin_param="tokens_per_batch = 131072"
 ```
-
