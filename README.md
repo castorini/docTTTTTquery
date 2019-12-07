@@ -127,9 +127,10 @@ QueriesRanked: 6980
 
 ## T5 Inference: Predicting Queries from Passages
 
-If you plan to train or run inference with T5, keep in mind that it only works on TPUs (and consequently Google Cloud machines), so this installation must be performed on a Google Cloud instance. If you only want to reproduce our results, you only need to install the search engine framework (Anserini), described below.
+Next, we provide instructions on how to use our trained T5 models to predict queries from new passages.
+Note that T5 only works on TPUs (and consequently Google Cloud machines), so this installation must be performed on a Google Cloud instance.
 
-You first need to install t5 (please check the [original T5 repository](https://github.com/google-research/text-to-text-transfer-transformer) for updated installation instructions):
+To begin, install T5 (check the [original T5 repository](https://github.com/google-research/text-to-text-transfer-transformer) for the latest installation instructions):
 
 ```
 pip install t5[gcp]
@@ -172,9 +173,14 @@ for ITER in {00..09}; do
 done
 ```
 
-## T5 Training: Creating a Prediction Model from Scratch
+**TODO:** Where do we download and put the trained models?
 
-The following command will train a T5-base model for 4k iterations to predict queries from passages. We assume you put the tsv training file in `gs://your_bucket/data/doc_query_pairs.train.tsv`. Also, please change `your_tpu_name`, `your_tpu_zone`, `your_project_id`, and `your_bucket` accordingly.
+## T5 Training: Learning a New Prediction Model
+
+Finally, we show how to learn a new prediction model.
+The following command will train a T5-base model for 4k iterations to predict queries from passages.
+We assume you put the tsv training file in `gs://your_bucket/data/doc_query_pairs.train.tsv` (download from above).
+Also, change `your_tpu_name`, `your_tpu_zone`, `your_project_id`, and `your_bucket` accordingly.
 
 ```
 t5_mesh_transformer  \
