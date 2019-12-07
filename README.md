@@ -15,6 +15,7 @@ MS MARCO Passage Ranking Leaderboard (Nov 30th 2019) | Eval MRR@10 | Latency
 [BM25 + BERT](https://github.com/nyu-dl/dl4marco-bert) from [(Nogueira et al., 2019)](https://arxiv.org/abs/1904.08375) | 36.8 | 3500 ms
 FastText + Conv-KNRM (Single) [(Hofstätter et al. SIGIR 2019)](https://github.com/sebastian-hofstaetter/sigir19-neural-ir) (best non-BERT) | 27.7 | -
 docTTTTTquery (this code)             | 27.2 | 64 ms
+DeepCT [(Dai and Callan, 2019)](https://github.com/AdeDZY/DeepCT)              | 23.9 | 55 ms
 doc2query [(Nogueira et al., 2019)](https://github.com/nyu-dl/dl4ir-doc2query)              | 21.8 | 61 ms
 [BM25](https://github.com/castorini/anserini/blob/master/docs/experiments-msmarco-passage.md)  | 18.6  | 55 ms
 
