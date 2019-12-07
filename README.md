@@ -146,9 +146,16 @@ We also need to split the file into smaller files (each with 1M lines) to avoid 
 split --suffix-length 2 --numeric-suffixes --lines 1000000 input_docs.txt input_docs.txt
 ```
 
-We now upload the files to Google Cloud Storage:
+We now upload the input docs to Google Cloud Storage:
 ```
 gsutil cp input_docs.txt?? gs://your_bucket/data/
+```
+
+We also need to upload our trained t5-base model to GCS:
+```
+wget https://storage.googleapis.com/doctttttquery_git/t5-base.zip
+unzip t5-base.zip
+gsutil cp model.ckpt-1004000* gs://your_bucket/models/
 ```
 
 We are now ready to predict queries from passages. Remember to replace `your_tpu`, `your_tpu_zone`, `your_project_id` and `your_bucket` with your values. Note that the command below will only sample one query per passage. If you want multiple samples, you will need to repeat this process multiple times (remember to replace `decode_from_file.output_filename` with a new filename for each sample).
@@ -173,8 +180,6 @@ for ITER in {00..09}; do
       --gin_param="Unitransformer.sample_autoregressive.sampling_keep_top_k = 10"
 done
 ```
-
-**TODO:** Where do we download and put the trained models?
 
 ## T5 Training: Learning a New Prediction Model
 
@@ -201,5 +206,4 @@ t5_mesh_transformer  \
   --gin_param="run.train_steps = 1004000" \
   --gin_param="tokens_per_batch = 131072"
 ```
-
 
