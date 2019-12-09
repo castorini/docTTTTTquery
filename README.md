@@ -188,6 +188,7 @@ for ITER in {00..09}; do
       --gin_param="Unitransformer.sample_autoregressive.sampling_keep_top_k = 10"
 done
 ```
+It should take approximately 8 hours to sample one query for each of the 8.8M passages, costing ~$20 USD (8 hours×$2.40 USD/hour) on a preemptible TPU.
 
 ## T5 Training: Learning a New Prediction Model
 
