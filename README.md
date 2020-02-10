@@ -1,4 +1,4 @@
-# docTTTTTquery
+# docTTTTTquery: Document Expansion by Query Prediction
 
 docTTTTTquery is the latest version of the doc2query family of document expansion models.
 The basic idea is to train a model, that when given an input document, generates questions that the document might answer (or more broadly, queries for which the document might be relevant).
