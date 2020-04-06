@@ -165,7 +165,7 @@ unzip t5-base.zip
 gsutil cp model.ckpt-1004000* gs://your_bucket/models/
 ```
 
-We are now ready to predict queries from passages. Remember to replace `your_tpu`, `your_tpu_zone`, `your_project_id` and `your_bucket` with your values. Note that the command below will only sample one query per passage. If you want multiple samples, you will need to repeat this process multiple times (remember to replace `decode_from_file.output_filename` with a new filename for each sample).
+We are now ready to predict queries from passages. Remember to replace `your_tpu`, `your_tpu_zone`, `your_project_id` and `your_bucket` with your values. Note that the command below will only sample one query per passage. If you want multiple samples, you will need to repeat this process multiple times (remember to replace `output_filename` with a new filename for each sample).
 
 ```bash
 for ITER in {00..08}; do
@@ -181,8 +181,8 @@ for ITER in {00..08}; do
       --gin_param="infer_checkpoint_step = 1004000" \
       --gin_param="utils.run.sequence_length = {'inputs': 512, 'targets': 64}" \
       --gin_param="Bitransformer.decode.max_decode_length = 64" \
-      --gin_param="decode_from_file.input_filename = 'gs://your_bucket/data/input_docs.txt$ITER'" \
-      --gin_param="decode_from_file.output_filename = 'gs://your_bucket/data/predicted_queries_topk_sample.txt$ITER'" \
+      --gin_param="input_filename = 'gs://your_bucket/data/input_docs.txt$ITER'" \
+      --gin_param="output_filename = 'gs://your_bucket/data/predicted_queries_topk_sample.txt$ITER'" \
       --gin_param="tokens_per_batch = 131072" \
       --gin_param="Bitransformer.decode.temperature = 1.0" \
       --gin_param="Unitransformer.sample_autoregressive.sampling_keep_top_k = 10"
