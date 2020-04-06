@@ -168,7 +168,7 @@ gsutil cp model.ckpt-1004000* gs://your_bucket/models/
 We are now ready to predict queries from passages. Remember to replace `your_tpu`, `your_tpu_zone`, `your_project_id` and `your_bucket` with your values. Note that the command below will only sample one query per passage. If you want multiple samples, you will need to repeat this process multiple times (remember to replace `decode_from_file.output_filename` with a new filename for each sample).
 
 ```bash
-for ITER in {00..09}; do
+for ITER in {00..08}; do
     t5_mesh_transformer \
       --tpu="your_tpu" \
       --gcp_project="your_project_id" \
