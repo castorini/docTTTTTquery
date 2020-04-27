@@ -1,5 +1,7 @@
 # docTTTTTquery: Document Expansion by Query Prediction
 
+***** **New April 26th, 2020: Instructions to run the model using the pytorch's transformers library 🤗** *****
+
 docTTTTTquery is the latest version of the doc2query family of document expansion models.
 The basic idea is to train a model, that when given an input document, generates questions that the document might answer (or more broadly, queries for which the document might be relevant).
 These predicted questions (or queries) are then appended to the original documents, which are then indexed as before.
@@ -57,7 +59,7 @@ We provide instructions on how to replicate our docTTTTTquery runs with the [Ans
 
 First, install Anserini (see [homepage](https://github.com/castorini/anserini) for more details):
 
-```
+```bash
 sudo apt-get install maven
 git clone https://github.com/castorini/Anserini.git
 cd Anserini
@@ -128,10 +130,57 @@ QueriesRanked: 6980
 
 Voilà!
 
-## T5 Inference: Predicting Queries from Passages
+## Predicting Queries from Passages: T5 Inference with Pytorch
+We will use the excelent 🤗 transformers library to sampe queries from our T5 model.
 
-Next, we provide instructions on how to use our trained T5 models to predict queries from new passages.
-Note that T5 only works on TPUs (and consequently Google Cloud machines), so this installation must be performed on a Google Cloud instance.
+First, install the library:
+```bash
+pip install transformers
+```
+
+Download and unzip `t5-base.zip` from the table above, and load the model checkpoint:
+```python
+import torch
+from transformers import T5Config, T5Tokenizer, T5ForConditionalGeneration
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+tokenizer = T5Tokenizer.from_pretrained('t5-base')
+config = T5Config.from_pretrained('t5-base')
+model = T5ForConditionalGeneration.from_pretrained(
+    'model.ckpt-1004000', from_tf=True, config=config)
+model.to(device)
+```
+
+Sample 3 questions from a example document (don't forget to append the end-of-sequence token `</s>`):
+```python
+doc_text = 'The presence of communication amid scientific minds was equally important to the success of the Manhattan Project as scientific intellect was. The only cloud hanging over the impressive achievement of the atomic researchers and engineers is what their success truly meant; hundreds of thousands of innocent lives obliterated. </s>'
+
+input_ids = tokenizer.encode(doc_text, return_tensors='pt').to(device)
+outputs = model.generate(
+    input_ids=input_ids,
+    max_length=64,
+    do_sample=True,
+    top_k=10,
+    num_return_sequences=3)
+
+for i in range(3):
+    print(f'sample {i + 1}: {tokenizer.decode(outputs[i], skip_special_tokens=True)}')
+```
+
+The output should be similar to this:
+```
+sample 1: why was the manhattan project successful
+sample 2: the manhattan project what it means
+sample 3: what was the most important aspect of the manhattan project
+```
+
+For more information on how to use T5 with HuggingFace's transformers library, [check their documentation](https://huggingface.co/transformers/model_doc/t5.html).
+
+## Predicting Queries from Passages: T5 Inference with Tensorflow
+
+Next, we provide instructions on how to use our trained T5 models to predict queries for each of the 8.8M documents in the MS MARCO corpus.
+To speed up inference, we will use TPUs (and consequently Google Cloud machines), so this installation must be performed on a Google Cloud instance.
 
 To begin, install T5 (check the [original T5 repository](https://github.com/google-research/text-to-text-transfer-transformer) for the latest installation instructions):
 
