@@ -59,7 +59,7 @@ We provide instructions on how to replicate our docTTTTTquery runs with the [Ans
 
 First, install Anserini (see [homepage](https://github.com/castorini/anserini) for more details):
 
-```
+```bash
 sudo apt-get install maven
 git clone https://github.com/castorini/Anserini.git
 cd Anserini
@@ -139,7 +139,7 @@ pip install transformers
 ```
 
 Download and unzip `t5-base.zip` from the table above, and load the model checkpoint:
-```
+```python
 import torch
 from transformers import T5Config, T5Tokenizer, T5ForConditionalGeneration
 
@@ -153,7 +153,7 @@ model.to(device)
 ```
 
 Sample 3 questions from a example document (don't forget to append the end-of-sequence token `</s>`):
-```
+```python
 doc_text = 'The presence of communication amid scientific minds was equally important to the success of the Manhattan Project as scientific intellect was. The only cloud hanging over the impressive achievement of the atomic researchers and engineers is what their success truly meant; hundreds of thousands of innocent lives obliterated. </s>'
 
 input_ids = tokenizer.encode(doc_text, return_tensors='pt').to(device)
