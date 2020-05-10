@@ -101,7 +101,7 @@ Now, create an index using Anserini on the expanded passages (replace `/path/to/
 
 ```bash
 sh /path/to/anserini/target/appassembler/bin/IndexCollection \
-  -collection JsonCollection -generator LuceneDocumentGenerator \
+  -collection JsonCollection -generator DefaultLuceneDocumentGenerator \
   -threads 9 -input ./docs -index ./lucene-index
 ```
 
