@@ -1,5 +1,6 @@
 # docTTTTTquery: Document Expansion by Query Prediction
 
+***** **New July 16th, 2020: Instructions to run docTTTTTquery on MS MARCO document dataset** *****
 ***** **New April 26th, 2020: Instructions to run the model using the pytorch's transformers library 🤗** *****
 
 docTTTTTquery is the latest version of the doc2query family of document expansion models.
@@ -264,3 +265,127 @@ t5_mesh_transformer  \
   --gin_param="run.train_steps = 1004000" \
   --gin_param="tokens_per_batch = 131072"
 ```
+
+
+
+# MS MARCO Document dataset
+
+Here we detail how to expand documents from the MS MARCO _document_ dataset using docTTTTTquery.
+The MS MARCO document dataset is similar to the MS MARCO passage, but it contains longer documents,
+which need to be split into shorter segments before being fed to docTTTTTquery.
+
+Like in the instructions for MS MARCO passage dataset, we explain the process in reverse order.
+(i.e., indexing, expansion, query prediction), since we believe there are more users interested in
+experimenting with the expanded index than expanding the document themselves.
+
+
+## Indexing with expanded queries
+
+First, download the original corpus, the predicted queries, and a file mapping document segments to their document id:
+```
+wget http://msmarco.blob.core.windows.net/msmarcoranking/msmarco-docs.tsv.gz
+gsutil cp gs://neuralresearcher_data/doc2query_t5_msmarco_doc/data/1/predicted_queries_topk_sample???.txt???-1004000 .
+gsutil cp gs://neuralresearcher_data/doc2query_t5_msmarco_doc/data/1/
+```
+
+Merge the predicted queries into a single file. There are 10 predicted queries per document.
+```bash
+gsutil cp gs://neuralresearcher_data/doc2query_t5_msmarco_doc/data/1/predicted_queries_topk_sample???.txt???-1004000 ${OUTPUT_DIR}/
+
+# Total number of expected lines
+TOTAL=20545677
+
+# Merge predicted queries.
+for SAMPLE in {000..009}; do
+    cat predicted_queries_topk_sample$SAMPLE.txt???-1004000 > predicted_queries_topk_sample$SAMPLE.txt-1004000
+    NUMLINES=$(wc -l /predicted_queries_topk_sample$SAMPLE.txt-1004000 |cut -d " " -f 1)
+    if (( NUMLINES != TOTAL )); then
+        echo "Wrong number of lines: $NUMLINES predicted_queries_topk_sample$SAMPLE.txt-1004000"
+        exit 125
+    fi
+done
+
+paste -d" " \
+  predicted_queries_topk_sample000.txt-1004000 \
+  predicted_queries_topk_sample001.txt-1004000 \
+  predicted_queries_topk_sample002.txt-1004000 \
+  predicted_queries_topk_sample003.txt-1004000 \
+  predicted_queries_topk_sample004.txt-1004000 \
+  predicted_queries_topk_sample005.txt-1004000 \
+  predicted_queries_topk_sample006.txt-1004000 \
+  predicted_queries_topk_sample007.txt-1004000 \
+  predicted_queries_topk_sample008.txt-1004000 \
+  predicted_queries_topk_sample009.txt-1004000 \
+  > predicted_queries_topk.txt-1004000
+
+# Check if the number of predicted queries matches the number of document segments.
+NUMLINES=$(wc -l predicted_queries_topk.txt-1004000 |cut -d " " -f 1)
+if (( NUMLINES != TOTAL )); then
+    echo "Wrong number of lines: $NUMLINES predicted_queries_topk.txt-1004000"
+    exit 125
+fi
+```
+
+We now append the queries to the original documents:
+```bash
+python /scratch/rfn216/doc2query_t5_msmarco_doc/codes/$EXPNO/convert_to_anserini_jsonl.py \
+  --original_docs_path=./msmarco-docs.tsv.gz \
+  --doc_ids_path=./segment_doc_ids.txt \
+  --predictions_path=./predicted_queries_topk.txt-1004000 \
+  --output_docs_path=./expanded_docs/docs.json \
+```
+
+Once we have the expanded document, we index them with Anserini:
+```bash
+sh target/appassembler/bin/IndexCollection \
+  -collection JsonCollection  \
+  -generator LuceneDocumentGenerator \
+  -input ./expanded_docs \
+  -index ./lucene-index \
+  -threads 6
+```
+
+
+sh target/appassembler/bin/SearchCollection \
+  -topicreader TsvString \
+  -index ${OUTPUT_DIR}/lucene-index \
+  -topics $HOME/anserini/src/main/resources/topics-and-qrels/topics.msmarco-doc.dev.txt \
+  -output ${OUTPUT_DIR}/run.dev.small.txt \
+  -bm25 \
+  -bm25.k1 3.44 \
+  -bm25.b 0.87 \
+   >> ${RUNDIR}/out.log 2>&1
+
+echo "Evaluating Dev..."  >> ${RUNDIR}/out.log 2>&1
+$HOME/anserini/eval/trec_eval.9.0.4/trec_eval \
+  -c \
+  -m all_trec \
+  $HOME/anserini/src/main/resources/topics-and-qrels/qrels.msmarco-doc.dev.txt \
+  ${OUTPUT_DIR}/run.dev.small.txt \
+  >> ${RUNDIR}/out.log 2>&1
+
+## Predicting Queries from documents: T5 Inference with Tensorflow
+
+
+## Segmentation
+We begin by downloading the corpus, which contains 3.2M documents.
+```bash
+wget http://msmarco.blob.core.windows.net/msmarcoranking/msmarco-docs.tsv.gz
+gunzip msmarco-docs.tsv.gz
+```
+
+We split the corpus into files of 100k documents, which later can be processed in parallel.
+```bash
+split --suffix-length 2 --numeric-suffixes --lines 100000 msmarco-docs.tsv msmarco-docs.tsv
+
+```
+
+We now segment each document using a sliding window of 10 sentences and stride of 5 sentences:
+```bash
+for ITER in {00..32}; do
+python convert_msmarco_doc_to_t5_format.py \
+  --corpus_path=${CORPUS_PATH} \
+  --output_segment_texts_path=${OUTPUT_DIR}/segment_texts.txt$ITER \
+  --output_segment_doc_ids_path=${OUTPUT_DIR}/segment_doc_ids.txt$ITER \
+
+
