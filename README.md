@@ -92,7 +92,7 @@ We can now append those queries to the original MS MARCO passage collection:
 ```bash
 tar -xvf collection.tar.gz
 
-python convert_collection_to_jsonl.py \
+python convert_msmarco_passage_to_anserini.py \
     --collection_path=collection.tsv \
     --predictions=predicted_queries_topk.txt-1004000 \
     --output_folder=./docs
@@ -283,26 +283,15 @@ experimenting with the expanded index than expanding the document themselves.
 
 First, download the original corpus, the predicted queries, and a file mapping document segments to their document id:
 ```
-wget http://msmarco.blob.core.windows.net/msmarcoranking/msmarco-docs.tsv.gz
-gsutil cp gs://neuralresearcher_data/doc2query_t5_msmarco_doc/data/1/predicted_queries_topk_sample???.txt???-1004000 .
-gsutil cp gs://neuralresearcher_data/doc2query_t5_msmarco_doc/data/1/
+gsutil cp gs://neuralresearcher_data/msmarco_doc/msmarco-docs.tsv.gz .
+gsutil cp gs://neuralresearcher_data/doc2query_t5_msmarco_doc/data/1/predicted_queries_topk_sample00?.txt???-1004000 .
+gsutil cp gs://neuralresearcher_data/doc2query_t5_msmarco_doc/data/1/segment_doc_ids.txt .
 ```
 
 Merge the predicted queries into a single file. There are 10 predicted queries per document.
 ```bash
-gsutil cp gs://neuralresearcher_data/doc2query_t5_msmarco_doc/data/1/predicted_queries_topk_sample???.txt???-1004000 ${OUTPUT_DIR}/
-
-# Total number of expected lines
-TOTAL=20545677
-
-# Merge predicted queries.
 for SAMPLE in {000..009}; do
     cat predicted_queries_topk_sample$SAMPLE.txt???-1004000 > predicted_queries_topk_sample$SAMPLE.txt-1004000
-    NUMLINES=$(wc -l /predicted_queries_topk_sample$SAMPLE.txt-1004000 |cut -d " " -f 1)
-    if (( NUMLINES != TOTAL )); then
-        echo "Wrong number of lines: $NUMLINES predicted_queries_topk_sample$SAMPLE.txt-1004000"
-        exit 125
-    fi
 done
 
 paste -d" " \
@@ -317,52 +306,55 @@ paste -d" " \
   predicted_queries_topk_sample008.txt-1004000 \
   predicted_queries_topk_sample009.txt-1004000 \
   > predicted_queries_topk.txt-1004000
-
-# Check if the number of predicted queries matches the number of document segments.
-NUMLINES=$(wc -l predicted_queries_topk.txt-1004000 |cut -d " " -f 1)
-if (( NUMLINES != TOTAL )); then
-    echo "Wrong number of lines: $NUMLINES predicted_queries_topk.txt-1004000"
-    exit 125
-fi
 ```
 
-We now append the queries to the original documents:
+We now append the queries to the original documents (this step takes approximately 10 minutes):
 ```bash
-python /scratch/rfn216/doc2query_t5_msmarco_doc/codes/$EXPNO/convert_to_anserini_jsonl.py \
+python convert_msmarco_doc_to_anserini.py \
   --original_docs_path=./msmarco-docs.tsv.gz \
   --doc_ids_path=./segment_doc_ids.txt \
   --predictions_path=./predicted_queries_topk.txt-1004000 \
-  --output_docs_path=./expanded_docs/docs.json \
+  --output_docs_path=./expanded_docs/docs.json
 ```
 
-Once we have the expanded document, we index them with Anserini:
+Once we have the expanded document, we index them with Anserini (this step takes approximately 40 minutes):
 ```bash
-sh target/appassembler/bin/IndexCollection \
+sh ${PATH_TO_ANSERINI}/target/appassembler/bin/IndexCollection \
   -collection JsonCollection  \
-  -generator LuceneDocumentGenerator \
+  -generator DefaultLuceneDocumentGenerator \
   -input ./expanded_docs \
   -index ./lucene-index \
   -threads 6
 ```
 
-
-sh target/appassembler/bin/SearchCollection \
+We can then retrieve the documents using the dev queries (this step takes approximately 10 minutes).
+```
+sh ${PATH_TO_ANSERINI}/target/appassembler/bin/SearchCollection \
   -topicreader TsvString \
-  -index ${OUTPUT_DIR}/lucene-index \
-  -topics $HOME/anserini/src/main/resources/topics-and-qrels/topics.msmarco-doc.dev.txt \
-  -output ${OUTPUT_DIR}/run.dev.small.txt \
+  -index ./lucene-index \
+  -topics ${PATH_TO_ANSERINI}/src/main/resources/topics-and-qrels/topics.msmarco-doc.dev.txt \
+  -output ./run.dev.small.txt \
   -bm25 \
-  -bm25.k1 3.44 \
-  -bm25.b 0.87 \
-   >> ${RUNDIR}/out.log 2>&1
+  -threads 6
+```
 
-echo "Evaluating Dev..."  >> ${RUNDIR}/out.log 2>&1
-$HOME/anserini/eval/trec_eval.9.0.4/trec_eval \
-  -c \
-  -m all_trec \
-  $HOME/anserini/src/main/resources/topics-and-qrels/qrels.msmarco-doc.dev.txt \
-  ${OUTPUT_DIR}/run.dev.small.txt \
-  >> ${RUNDIR}/out.log 2>&1
+${PATH_TO_ANSERINI}/eval/trec_eval.9.0.4/trec_eval \
+  -m map -m recall.1000 \
+  ${PATH_TO_ANSERINI}/src/main/resources/topics-and-qrels/qrels.msmarco-doc.dev.txt \
+  ./run.dev.small.txt
+
+The output should be:
+```
+map                   	all	0.2886
+recall_1000           	all	0.9259
+```
+
+In comparison, indexing with the original documents gives:
+```
+map                     all     0.2310
+recall_1000             all     0.8856
+```
+
 
 ## Predicting Queries from documents: T5 Inference with Tensorflow
 
