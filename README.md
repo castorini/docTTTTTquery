@@ -227,7 +227,6 @@ for ITER in {00..08}; do
       --gin_file="gs://t5-data/pretrained_models/base/operative_config.gin" \
       --gin_file="infer.gin" \
       --gin_file="sample_decode.gin" \
-      --gin_param="utils.tpu_mesh_shape.tpu_topology = '2x2'" \
       --gin_param="infer_checkpoint_step = 1004000" \
       --gin_param="utils.run.sequence_length = {'inputs': 512, 'targets': 64}" \
       --gin_param="Bitransformer.decode.max_decode_length = 64" \
@@ -257,8 +256,6 @@ t5_mesh_transformer  \
   --gin_file="dataset.gin" \
   --gin_file="models/bi_v1.gin" \
   --gin_file="gs://t5-data/pretrained_models/base/operative_config.gin" \
-  --gin_param="utils.tpu_mesh_shape.model_parallelism = 1" \
-  --gin_param="utils.tpu_mesh_shape.tpu_topology = '2x2'" \
   --gin_param="utils.run.train_dataset_fn = @t5.models.mesh_transformer.tsv_dataset_fn" \
   --gin_param="tsv_dataset_fn.filename = 'gs://your_bucket/data/doc_query_pairs.train.tsv'" \
   --gin_file="learning_rate_schedules/constant_0_001.gin" \
@@ -357,9 +354,8 @@ recall_1000             all     0.8856
 
 
 ## Predicting Queries from documents: T5 Inference with Tensorflow
+If you want to predict the queries yourself, please follow the instructions below.
 
-
-## Segmentation
 We begin by downloading the corpus, which contains 3.2M documents.
 ```bash
 wget http://msmarco.blob.core.windows.net/msmarcoranking/msmarco-docs.tsv.gz
@@ -369,7 +365,6 @@ gunzip msmarco-docs.tsv.gz
 We split the corpus into files of 100k documents, which later can be processed in parallel.
 ```bash
 split --suffix-length 2 --numeric-suffixes --lines 100000 msmarco-docs.tsv msmarco-docs.tsv
-
 ```
 
 We now segment each document using a sliding window of 10 sentences and stride of 5 sentences:
@@ -379,5 +374,36 @@ python convert_msmarco_doc_to_t5_format.py \
   --corpus_path=${CORPUS_PATH} \
   --output_segment_texts_path=${OUTPUT_DIR}/segment_texts.txt$ITER \
   --output_segment_doc_ids_path=${OUTPUT_DIR}/segment_doc_ids.txt$ITER \
+```
 
+We are now ready to run inference. Since this is a costly step, we recommend using Google Cloud
+with TPUs to run it faster.
 
+We will use the docTTTTTquery model trained on the MS MARCO passage dataset, so you need to upload it to your Google Storage bucket.
+```bash
+wget https://storage.googleapis.com/doctttttquery_git/t5-base.zip
+unzip t5-base.zip
+gsutil cp model.ckpt-1004000* gs://your_bucket/models/
+```
+
+Run the command below to sample one question per segment (note that you will need to start a TPU).
+```
+for ITER in {00..32}; do
+    t5_mesh_transformer \
+      --tpu="your_tpu" \
+      --gcp_project="your_project_id" \
+      --tpu_zone="your_tpu_zone" \
+      --model_dir="gs://your_bucket/models/" \
+      --gin_file="gs://t5-data/pretrained_models/base/operative_config.gin" \
+      --gin_file="infer.gin" \
+      --gin_file="sample_decode.gin" \
+      --gin_param="infer_checkpoint_step = 1004000" \
+      --gin_param="utils.run.sequence_length = {'inputs': 512, 'targets': 64}" \
+      --gin_param="Bitransformer.decode.max_decode_length = 64" \
+      --gin_param="input_filename = './segment_texts.txt$ITER'" \
+      --gin_param="output_filename = './predicted_queries_topk_sample.txt$ITER'" \
+      --gin_param="tokens_per_batch = 131072" \
+      --gin_param="Bitransformer.decode.temperature = 1.0" \
+      --gin_param="Unitransformer.sample_autoregressive.sampling_keep_top_k = 10"
+done
+```
