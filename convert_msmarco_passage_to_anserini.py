@@ -21,10 +21,12 @@ stop_words = {'ourselves', 'hers', 'between', 'yourself', 'but', 'again', 'there
               'being', 'if', 'theirs', 'my', 'against', 'a', 'by', 'doing', 'it',
               'how', 'further', 'was', 'here', 'than'}
 
+
 # process text by tokenizing and removing stopwords
 def process_text(text):
     processed = text.lower().replace('.', ' ').replace(',', ' ').replace('?', ' ')
     return [word for word in processed.split() if word not in stop_words]
+
 
 # split new and repeated prediction words
 def split_new_repeated(pred_text, doc_text):
@@ -41,33 +43,28 @@ def split_new_repeated(pred_text, doc_text):
 
     return pred_new, pred_repeated
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Converts MSMARCO\'s tsv collection to Anserini jsonl '
                     'files.')
-    parser.add_argument('--collection_path', required=True,
-                        help='MS MARCO .tsv collection file')
-    parser.add_argument('--predictions', required=True,
-                        help='File containing predicted queries.')
+    parser.add_argument('--collection_path', required=True, help='MS MARCO .tsv collection file')
+    parser.add_argument('--predictions', required=True, help='File containing predicted queries.')
     parser.add_argument('--output_folder', required=True, help='output folder')
     parser.add_argument('--max_docs_per_file', default=1000000, type=int,
                         help='maximum number of documents in each jsonl file.')
 
     # parameters to simulate BM25F via duplicated text
-    parser.add_argument('--original_copies', default=1, type=int,
-                        help='number of original text duplicates.')
-    parser.add_argument('--prediction_copies', default=1, type=int,
-                        help='number of predicted text duplicates.')
+    parser.add_argument('--original_copies', default=1, type=int, help='number of original text duplicates.')
+    parser.add_argument('--prediction_copies', default=1, type=int, help='number of predicted text duplicates.')
 
     # parameters to separate new and repeated prediction text
     parser.add_argument('--split_predictions', default=False, type=bool,
-                    help='separate predicted text into repeated and new.')
+                        help='separate predicted text into repeated and new.')
     parser.add_argument('--repeated_prediction_copies', default=1, type=int,
-                        help='number of repeated predicted text duplicates, \
-                              must set split_predictions to true.')
+                        help='number of repeated predicted text duplicates, must set split_predictions to true.')
     parser.add_argument('--new_prediction_copies', default=1, type=int,
-                        help='number of new predicted text duplicates, \
-                              must set split_predictions to true.')
+                        help='number of new predicted text duplicates, must set split_predictions to true.')
 
     args = parser.parse_args()
 
@@ -80,15 +77,13 @@ if __name__ == '__main__':
     new_words = 0
     total_words = 0
 
-    with open(args.collection_path) as f_corpus, \
-            open(args.predictions) as f_pred:
+    with open(args.collection_path) as f_corpus, open(args.predictions) as f_pred:
         for i, (line_doc, line_pred) in enumerate(zip(f_corpus, f_pred)):
             # Write to a new file when the current one reaches maximum capacity.
             if i % args.max_docs_per_file == 0:
                 if i > 0:
                     output_jsonl_file.close()
-                output_path = os.path.join(
-                    args.output_folder, 'docs{:02d}.json'.format(file_index))
+                output_path = os.path.join(args.output_folder, f'docs{file_index:02d}.json')
                 output_jsonl_file = open(output_path, 'w')
                 file_index += 1
 
