@@ -8,10 +8,10 @@ from tqdm import tqdm
 
 parser = argparse.ArgumentParser(
     description='Concatenate MS MARCO original docs with predicted queries')
-parser.add_argument('--original_docs_path', required=True)
-parser.add_argument('--doc_ids_path', required=True)
-parser.add_argument('--predictions_path', required=True)
-parser.add_argument('--output_docs_path', required=True)
+parser.add_argument('--original_docs_path', required=True, help='MS MARCO .tsv corpus file.')
+parser.add_argument('--doc_ids_path', required=True, help='File mapping segments to doc ids.')
+parser.add_argument('--predictions_path', required=True, help='File containing predicted queries.')
+parser.add_argument('--output_docs_path', required=True, help='Output file in the anserini jsonl format.')
 
 args = parser.parse_args()
 

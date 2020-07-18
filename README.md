@@ -335,10 +335,13 @@ sh ${PATH_TO_ANSERINI}/target/appassembler/bin/SearchCollection \
   -threads 6
 ```
 
+And evaluate using `trec_eval` tool:
+```bash
 ${PATH_TO_ANSERINI}/eval/trec_eval.9.0.4/trec_eval \
   -m map -m recall.1000 \
   ${PATH_TO_ANSERINI}/src/main/resources/topics-and-qrels/qrels.msmarco-doc.dev.txt \
   ./run.dev.small.txt
+```
 
 The output should be:
 ```
@@ -387,7 +390,7 @@ gsutil cp model.ckpt-1004000* gs://your_bucket/models/
 ```
 
 Run the command below to sample one question per segment (note that you will need to start a TPU).
-```
+```bash
 for ITER in {00..32}; do
     t5_mesh_transformer \
       --tpu="your_tpu" \
