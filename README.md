@@ -373,10 +373,11 @@ split --suffix-length 2 --numeric-suffixes --lines 100000 msmarco-docs.tsv msmar
 We now segment each document using a sliding window of 10 sentences and stride of 5 sentences:
 ```bash
 for ITER in {00..32}; do
-python convert_msmarco_doc_to_t5_format.py \
-  --corpus_path=${CORPUS_PATH} \
-  --output_segment_texts_path=${OUTPUT_DIR}/segment_texts.txt$ITER \
-  --output_segment_doc_ids_path=${OUTPUT_DIR}/segment_doc_ids.txt$ITER \
+    python convert_msmarco_doc_to_t5_format.py \
+        --corpus_path=msmarco-docs.tsv$ITER \
+        --output_segment_texts_path=${OUTPUT_DIR}/segment_texts.txt$ITER \
+        --output_segment_doc_ids_path=${OUTPUT_DIR}/segment_doc_ids.txt$ITER
+done
 ```
 
 We are now ready to run inference. Since this is a costly step, we recommend using Google Cloud
