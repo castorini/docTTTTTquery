@@ -7,13 +7,11 @@ from tqdm import tqdm
 import re
 
 def create_segments(doc_text, max_length, stride):
-    
-    
     doc_text = doc_text.strip()
     doc = nlp(doc_text[:10000])
     sentences = [sent.string.strip() for sent in doc.sents]
-    
     segments = []
+    
     for i in range(0, len(sentences), stride):
         segment = " ".join(sentences[i:i+max_length])
         segment = re.sub(r'^#*', '', segment)
