@@ -357,6 +357,8 @@ recall_1000             all     0.8856
 
 ## Indexing with segmented documents and expanded queries
 
+We split the documents into segments and append the expanded queries to each of them, then we create the index for them. In this way, we can keep more useful segments from the documents in the initial ranking stage. 
+
 We will reuse the file `predicted_queries_topk.txt-1004000` that contains all the predicted queries from last section. We can now append the queries to the segmented documents.
 ```
 python convert_segmented_msmarco_doc_to_anserini.py \
