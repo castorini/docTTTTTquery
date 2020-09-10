@@ -1,7 +1,7 @@
 parser = argparse.ArgumentParser()
-parser.add_argument('--input', required=True, help='input file path')
-parser.add_argument('--output', required=True, help='output file path')
-parser.add_argument('--hits', required=True, help='output file path')
+parser.add_argument('--input', required=True, help='input file path, expected format: query_id, Q0, doc_seg_id, rank, score, run_tag')
+parser.add_argument('--output', required=True, help='output file path, expected format: query_id, Q0, doc_id, rank, score, run_tag')
+parser.add_argument('--hits', required=True, help='max number of top documents to return')
 
 args = parser.parse_args()
 
