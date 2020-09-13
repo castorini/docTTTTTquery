@@ -1,3 +1,8 @@
+'''
+Segment the documents and append their url, title, predicted queries to them. Then, they are saved into 
+json which can be used for indexing.
+'''
+
 import argparse
 import gzip
 import json
@@ -14,7 +19,6 @@ def create_segments(doc_text, max_length, stride):
     
     for i in range(0, len(sentences), stride):
         segment = " ".join(sentences[i:i+max_length])
-        segment = re.sub(r'^#*', '', segment)
         segments.append(segment)
         if i + max_length >= len(sentences):
             break
