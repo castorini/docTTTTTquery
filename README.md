@@ -355,6 +355,63 @@ map                     all     0.2310
 recall_1000             all     0.8856
 ```
 
+## Indexing with segmented documents and expanded queries
+
+We split the documents into segments and append the expanded queries to each of them, then we create the index for them. In this way, we can keep more useful segments from the documents in the initial ranking stage. 
+
+We will reuse the file `predicted_queries_topk.txt-1004000` that contains all the predicted queries from last section. We can now append the queries to the segmented documents.
+```
+python convert_segmented_msmarco_doc_to_anserini.py \
+  --original_docs_path=./msmarco-docs.tsv.gz \
+  --doc_ids_path=./segment_doc_ids.txt \
+  --predictions_path=./predicted_queries_topk.txt-1004000 \
+  --output_docs_path=./segmented_expanded_docs/docs.json
+```
+
+We index the segmented documents with Anserini:
+```bash
+sh ${PATH_TO_ANSERINI}/target/appassembler/bin/IndexCollection \
+  -collection JsonCollection  \
+  -generator DefaultLuceneDocumentGenerator \
+  -input ./segmented_expanded_docs \
+  -index ./segmented-docs-index \
+  -threads 6
+```
+
+Then, we can retrieve the top 10k segments with dev queries:
+```
+sh ${PATH_TO_ANSERINI}/target/appassembler/bin/SearchCollection \
+  -topicreader TsvString \
+  -index ./segmented-docs-index \
+  -topics ${PATH_TO_ANSERINI}/src/main/resources/topics-and-qrels/topics.msmarco-doc.dev.txt \
+  -output ./run.dev.seg.small.txt \
+  -hits 10000 \
+  -bm25 \
+  -threads 6
+```
+
+After that, we will aggregate the top 10000 segments into top 1000 document:
+```
+python convert_seg_to_doc.py
+  --input ./run.dev.seg.small.txt
+  --output ./run.dev.seg.top1k.small.txt
+  --hits 1000
+```
+
+Finally, we can evaluate them.
+```
+bash
+${PATH_TO_ANSERINI}/tools/eval/trec_eval.9.0.4/trec_eval \
+  -m map -m recall.1000 \
+  ${PATH_TO_ANSERINI}/src/main/resources/topics-and-qrels/qrels.msmarco-doc.dev.txt \
+  ./run.dev.seg.top1k.small.txt
+```
+
+The output should be:
+```
+map                   	all	0.3182
+recall_1000           	all	0.949
+```
 
 ## Predicting Queries from documents: T5 Inference with Tensorflow
 If you want to predict the queries yourself, please follow the instructions below.
