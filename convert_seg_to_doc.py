@@ -18,14 +18,14 @@ with open(args.input, 'r') as f:
         for line in f:
             query_id, a, doc_seg_id, rank, score, run_tag = line.split(' ')
             if query_id != query_ref:
-                top_K = []
+                top_K = set()
                 rank = 1
             if rank <= args.hits:
                 doc_seg = doc_seg_id.split('#') 
                 doc_id = doc_seg[0]
                 if doc_id not in top_K:
                     fout.write(f"{query_id} {a} {doc_id} {rank} {score} {run_tag}")
-                    top_K.append(doc_id)
+                    top_K.add(doc_id)
                     rank += 1
             query_ref = query_id
                 
