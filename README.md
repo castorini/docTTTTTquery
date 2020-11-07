@@ -1,9 +1,6 @@
-# docTTTTTquery: Document Expansion by Query Prediction
+# Document Expansion by Query Prediction
 
-***** **New July 16th, 2020: Instructions to run docTTTTTquery on MS MARCO document dataset** *****
-***** **New April 26th, 2020: Instructions to run the model using the pytorch's transformers library 🤗** *****
-
-docTTTTTquery is the latest version of the doc2query family of document expansion models.
+The repo describes experiments with docTTTTTquery (sometimes written as docT5query or doc2query-T5), the latest version of the doc2query family of document expansion models.
 The basic idea is to train a model, that when given an input document, generates questions that the document might answer (or more broadly, queries for which the document might be relevant).
 These predicted questions (or queries) are then appended to the original documents, which are then indexed as before.
 docTTTTTquery gets its name from the use of T5 as the expansion model.
@@ -34,7 +31,7 @@ Why's the paper so short? Check out [our proposal for micropublications](https:/
 + [Replicating MS MARCO Passage Retrieval Results with Anserini](#Replicating-MS-MARCO-Passage-Retrieval-Results-with-Anserini)
 + [Predicting Queries from Passages: T5 Inference with PyTorch](#Predicting-Queries-from-Passages-T5-Inference-with-PyTorch)
 + [Predicting Queries from Passages: T5 Inference with TensorFlow](#Predicting-Queries-from-Passages-T5-Inference-with-TensorFlow)
-+ [T5 Training: Learning a New Prediction Model](#T5-Training-Learning-a-New-Prediction-Model)
++ [Learning a New Prediction Model: T5 Training with TensorFlow](#Learning-a-New-Prediction-Model-T5-Training-with-TensorFlow)
 + [Replicating MS MARCO Document Retrieval Results with Anserini](#Replicating-MS-MARCO-Document-Retrieval-Results-with-Anserini)
 + [Predicting Queries from Documents: T5 Inference with TensorFlow](#Predicting-Queries-from-Documents-T5-Inference-with-TensorFlow)
 
@@ -251,7 +248,7 @@ done
 ```
 It should take approximately 8 hours to sample one query for each of the 8.8M passages, costing ~$20 USD (8 hours at $2.40 USD/hour) on a preemptible TPU.
 
-## T5 Training: Learning a New Prediction Model
+## Learning a New Prediction Model: T5 Training with TensorFlow
 
 Finally, we show how to learn a new prediction model.
 The following command will train a T5-base model for 4k iterations to predict queries from passages.
