@@ -28,7 +28,7 @@ For more details, check out our paper:
 
 Why's the paper so short? Check out [our proposal for micropublications](https://github.com/lintool/guide/blob/master/micropublications.md)!
 
-+ [Predicting Queries from Passages: T5 Inference with Pytorch](#Predicting-Queries-from-Passages:-T5-Inference-with-Pytorch)
++ [Predicting Queries from Passages: T5 Inference with Pytorch](#Predicting-Queries-from-Passages-T5-Inference-with-Pytorch)
 
 ## Data and Trained Models
 
