@@ -3,12 +3,13 @@
 The repo describes experiments with docTTTTTquery (sometimes written as docT5query or doc2query-T5), the latest version of the doc2query family of document expansion models.
 The basic idea is to train a model, that when given an input document, generates questions that the document might answer (or more broadly, queries for which the document might be relevant).
 These predicted questions (or queries) are then appended to the original documents, which are then indexed as before.
-docTTTTTquery gets its name from the use of T5 as the expansion model.
+The docTTTTTquery model gets its name from the use of T5 as the expansion model.
 
 The primary advantage of this approach is that expensive neural inference is pushed to _indexing time_, which means that "bag of words" queries against an inverted index built on the augmented document collection are only slightly slower (due to longer documents) &mdash; but the retrieval results are _much_ better.
 Of course, these documents can be further reranked by another neural model in a [multi-stage ranking architecture](https://arxiv.org/abs/1910.14424).
 
-The results on the [MS MARCO passage retrieval task](http://www.msmarco.org/leaders.aspx) show that docTTTTTquery is much more effective than doc2query and (almost) as effective as the best non-BERT ranking model, while increasing query latency (time to retrieve 1000 docs per query) only slightly compared to vanilla BM25:
+This technique was introduced in November 2019 on MS MARCO passage retrieval task.
+Results on the [leaderboard](https://microsoft.github.io/msmarco/) show that docTTTTTquery is much more effective than doc2query and (almost) as effective as the best non-BERT ranking model, while increasing query latency (time to retrieve 1000 docs per query) only slightly compared to vanilla BM25:
 
 MS MARCO Passage Ranking Leaderboard (Nov 30th 2019) | Eval MRR@10 | Latency
 :------------------------------------ | :------: | ------:
@@ -27,7 +28,7 @@ Why's the paper so short? Check out [our proposal for micropublications](https:/
 
 ## Quick Links
 
-+ [Data and Trained Models: MS MARCO Passage Dataset](#Data-and-Trained-Models-MS-MARCO-Passage-Dataset)
++ [Data and Trained Models: MS MARCO Passage Ranking Dataset](#Data-and-Trained-Models-MS-MARCO-Passage-Ranking-Dataset)
 + [Replicating MS MARCO Passage Retrieval Results with Anserini](#Replicating-MS-MARCO-Passage-Retrieval-Results-with-Anserini)
 + [Predicting Queries from Passages: T5 Inference with PyTorch](#Predicting-Queries-from-Passages-T5-Inference-with-PyTorch)
 + [Predicting Queries from Passages: T5 Inference with TensorFlow](#Predicting-Queries-from-Passages-T5-Inference-with-TensorFlow)
@@ -35,9 +36,9 @@ Why's the paper so short? Check out [our proposal for micropublications](https:/
 + [Replicating MS MARCO Document Retrieval Results with Anserini](#Replicating-MS-MARCO-Document-Retrieval-Results-with-Anserini)
 + [Predicting Queries from Documents: T5 Inference with TensorFlow](#Predicting-Queries-from-Documents-T5-Inference-with-TensorFlow)
 
-## Data and Trained Models: MS MARCO Passage Dataset
+## Data and Trained Models: MS MARCO Passage Ranking Dataset
 
-The basic docTTTTTquery model is trained on the MS MARCO passage dataset.
+The basic docTTTTTquery model is trained on the MS MARCO passage ranking dataset.
 We make the following data and models available for download:
 
 + `doc_query_pairs.train.tsv`: Approximately 500,000 passage-query pairs used to train the model.
@@ -64,7 +65,7 @@ File | Size | MD5 | Download
 
 ## Replicating MS MARCO Passage Retrieval Results with Anserini
 
-We provide instructions on how to replicate our docTTTTTquery runs with the [Anserini](https://github.com/castorini/anserini) IR toolkit, using the predicted queries provided above.
+We provide instructions on how to replicate our docTTTTTquery results for the MS MARCO passage retrieval task with the [Anserini](https://github.com/castorini/anserini) IR toolkit, using the predicted queries provided above.
 
 First, install Anserini (see [homepage](https://github.com/castorini/anserini) for more details):
 
@@ -141,14 +142,16 @@ Voilà!
 
 ## Predicting Queries from Passages: T5 Inference with PyTorch
 
-We will use the excelent 🤗 transformers library to sampe queries from our T5 model.
+We will use the excellent [🤗 Transformers library](https://github.com/huggingface/transformers) by Hugging Face to sample queries from our T5 model.
 
 First, install the library:
+
 ```bash
 pip install transformers
 ```
 
 Download and unzip `t5-base.zip` from the table above, and load the model checkpoint:
+
 ```python
 import torch
 from transformers import T5Config, T5Tokenizer, T5ForConditionalGeneration
@@ -274,18 +277,16 @@ t5_mesh_transformer  \
 
 ## Replicating MS MARCO Document Retrieval Results with Anserini
 
-Here we detail how to expand documents from the MS MARCO _document_ dataset using docTTTTTquery.
-The MS MARCO document dataset is similar to the MS MARCO passage, but it contains longer documents,
-which need to be split into shorter segments before being fed to docTTTTTquery.
+Here we detail how to replicate docTTTTTquery runs for the MS MARCO _Document_ Ranking task.
+The MS MARCO Document Ranking tasking is similar to the MS MARCO Passing Ranking task, but the corpus contains longer documents, which need to be split into shorter segments before being fed to docTTTTTquery.
 
-Like in the instructions for MS MARCO passage dataset, we explain the process in reverse order.
-(i.e., indexing, expansion, query prediction), since we believe there are more users interested in
-experimenting with the expanded index than expanding the document themselves.
+Like in the instructions for MS MARCO Passage Retrieval task, we explain the process in reverse order (i.e., indexing, expansion, query prediction), since we believe there are more users interested in experimenting with the expanded index than expanding the document themselves.
 
+### Per-Document Expansion
 
-### Indexing with expanded queries
-
+The most straightforward way to use docTTTTTquery is to append the expanded queries to _each_ document.
 First, download the original corpus, the predicted queries, and a file mapping document segments to their document id:
+
 ```
 gsutil cp gs://neuralresearcher_data/msmarco_doc/msmarco-docs.tsv.gz .
 gsutil cp gs://neuralresearcher_data/doc2query_t5_msmarco_doc/data/1/predicted_queries_topk_sample00?.txt???-1004000 .
@@ -362,9 +363,11 @@ map                     all     0.2310
 recall_1000             all     0.8856
 ```
 
-### Indexing with segmented documents and expanded queries
+### Per-Segment Expansion
 
-We split the documents into segments and append the expanded queries to each of them, then we create the index for them. In this way, we can keep more useful segments from the documents in the initial ranking stage. 
+Although per-document expansion is the most straightforward way to use docTTTTTquery, we have found that _per segment_ expansion works even better.
+In this approach, we split the documents into segments and append the expanded queries to _each_ segment.
+We then index the segments of this expanded corpus.
 
 We will reuse the file `predicted_queries_topk.txt-1004000` that contains all the predicted queries from last section. We can now append the queries to the segmented documents.
 ```
