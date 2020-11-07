@@ -1,9 +1,6 @@
-# docTTTTTquery: Document Expansion by Query Prediction
+# Document Expansion by Query Prediction
 
-***** **New July 16th, 2020: Instructions to run docTTTTTquery on MS MARCO document dataset** *****
-***** **New April 26th, 2020: Instructions to run the model using the pytorch's transformers library 🤗** *****
-
-docTTTTTquery is the latest version of the doc2query family of document expansion models.
+The repo describes experiments with docTTTTTquery (sometimes written as docT5query or doc2query-T5), the latest version of the doc2query family of document expansion models.
 The basic idea is to train a model, that when given an input document, generates questions that the document might answer (or more broadly, queries for which the document might be relevant).
 These predicted questions (or queries) are then appended to the original documents, which are then indexed as before.
 docTTTTTquery gets its name from the use of T5 as the expansion model.
@@ -28,9 +25,20 @@ For more details, check out our paper:
 
 Why's the paper so short? Check out [our proposal for micropublications](https://github.com/lintool/guide/blob/master/micropublications.md)!
 
-## Data and Trained Models
+## Quick Links
 
-We make the following data available for download:
++ [Data and Trained Models: MS MARCO Passage Dataset](#Data-and-Trained-Models-MS-MARCO-Passage-Dataset)
++ [Replicating MS MARCO Passage Retrieval Results with Anserini](#Replicating-MS-MARCO-Passage-Retrieval-Results-with-Anserini)
++ [Predicting Queries from Passages: T5 Inference with PyTorch](#Predicting-Queries-from-Passages-T5-Inference-with-PyTorch)
++ [Predicting Queries from Passages: T5 Inference with TensorFlow](#Predicting-Queries-from-Passages-T5-Inference-with-TensorFlow)
++ [Learning a New Prediction Model: T5 Training with TensorFlow](#Learning-a-New-Prediction-Model-T5-Training-with-TensorFlow)
++ [Replicating MS MARCO Document Retrieval Results with Anserini](#Replicating-MS-MARCO-Document-Retrieval-Results-with-Anserini)
++ [Predicting Queries from Documents: T5 Inference with TensorFlow](#Predicting-Queries-from-Documents-T5-Inference-with-TensorFlow)
+
+## Data and Trained Models: MS MARCO Passage Dataset
+
+The basic docTTTTTquery model is trained on the MS MARCO passage dataset.
+We make the following data and models available for download:
 
 + `doc_query_pairs.train.tsv`: Approximately 500,000 passage-query pairs used to train the model.
 + `queries.dev.small.tsv`: 6,980 queries from the MS MARCO dev set. In this tsv file, the first column is the query id and the second is the query text.
@@ -54,7 +62,7 @@ File | Size | MD5 | Download
 `t5-base.zip` | 357 MB | `881d3ca87c307b3eac05fae855c79014` | [[GCS](https://storage.googleapis.com/doctttttquery_git/t5-base.zip)] [[Dropbox](https://www.dropbox.com/s/q1nye6wfsvf5sen/t5-base.zip)]
 `t5-large.zip` | 1.2 GB | `21c7e625210b0ae872679bc36ed92d44` | [[GCS](https://storage.googleapis.com/doctttttquery_git/t5-large.zip)] [[Dropbox](https://www.dropbox.com/s/gzq8r68uk38bmum/t5-large.zip)]
 
-## Replicating Retrieval Results with Anserini
+## Replicating MS MARCO Passage Retrieval Results with Anserini
 
 We provide instructions on how to replicate our docTTTTTquery runs with the [Anserini](https://github.com/castorini/anserini) IR toolkit, using the predicted queries provided above.
 
@@ -131,7 +139,8 @@ QueriesRanked: 6980
 
 Voilà!
 
-## Predicting Queries from Passages: T5 Inference with Pytorch
+## Predicting Queries from Passages: T5 Inference with PyTorch
+
 We will use the excelent 🤗 transformers library to sampe queries from our T5 model.
 
 First, install the library:
@@ -178,7 +187,7 @@ sample 3: what was the most important aspect of the manhattan project
 
 For more information on how to use T5 with HuggingFace's transformers library, [check their documentation](https://huggingface.co/transformers/model_doc/t5.html).
 
-## Predicting Queries from Passages: T5 Inference with Tensorflow
+## Predicting Queries from Passages: T5 Inference with TensorFlow
 
 Next, we provide instructions on how to use our trained T5 models to predict queries for each of the 8.8M documents in the MS MARCO corpus.
 To speed up inference, we will use TPUs (and consequently Google Cloud machines), so this installation must be performed on a Google Cloud instance.
@@ -239,7 +248,7 @@ done
 ```
 It should take approximately 8 hours to sample one query for each of the 8.8M passages, costing ~$20 USD (8 hours at $2.40 USD/hour) on a preemptible TPU.
 
-## T5 Training: Learning a New Prediction Model
+## Learning a New Prediction Model: T5 Training with TensorFlow
 
 Finally, we show how to learn a new prediction model.
 The following command will train a T5-base model for 4k iterations to predict queries from passages.
@@ -263,9 +272,7 @@ t5_mesh_transformer  \
   --gin_param="tokens_per_batch = 131072"
 ```
 
-
-
-# MS MARCO Document dataset
+## Replicating MS MARCO Document Retrieval Results with Anserini
 
 Here we detail how to expand documents from the MS MARCO _document_ dataset using docTTTTTquery.
 The MS MARCO document dataset is similar to the MS MARCO passage, but it contains longer documents,
@@ -276,7 +283,7 @@ Like in the instructions for MS MARCO passage dataset, we explain the process in
 experimenting with the expanded index than expanding the document themselves.
 
 
-## Indexing with expanded queries
+### Indexing with expanded queries
 
 First, download the original corpus, the predicted queries, and a file mapping document segments to their document id:
 ```
@@ -355,7 +362,7 @@ map                     all     0.2310
 recall_1000             all     0.8856
 ```
 
-## Indexing with segmented documents and expanded queries
+### Indexing with segmented documents and expanded queries
 
 We split the documents into segments and append the expanded queries to each of them, then we create the index for them. In this way, we can keep more useful segments from the documents in the initial ranking stage. 
 
@@ -413,7 +420,8 @@ map                   	all	0.3182
 recall_1000           	all	0.949
 ```
 
-## Predicting Queries from documents: T5 Inference with Tensorflow
+## Predicting Queries from Documents: T5 Inference with TensorFlow
+
 If you want to predict the queries yourself, please follow the instructions below.
 
 We begin by downloading the corpus, which contains 3.2M documents.
