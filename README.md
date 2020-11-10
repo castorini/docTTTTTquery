@@ -71,13 +71,14 @@ First, install Anserini (see [homepage](https://github.com/castorini/anserini) f
 
 ```bash
 sudo apt-get install maven
-git clone https://github.com/castorini/Anserini.git
-cd Anserini
+git clone --recurse-submodules https://github.com/castorini/anserini.git
+cd anserini
 mvn clean package appassembler:assemble
-tar xvfz eval/trec_eval.9.0.4.tar.gz -C eval/ && cd eval/trec_eval.9.0.4 && make
-cd ../ndeval && make
+cd tools/eval && tar xvfz trec_eval.9.0.4.tar.gz && cd trec_eval.9.0.4 && make && cd ../../..
+cd tools/eval/ndeval && make && cd ../../..
 ```
 
+For the purposes of this of this guide, we'll assume that `anserini` is cloned as a sub-directory of this repo, i.e., `docTTTTTquery/anserini/`.
 Next, download `queries.dev.small.tsv`, `qrels.dev.small.tsv`, `collection.tar.gz`, and `predicted_queries_topk_sampling.zip` using one of the options above.
 
 Before appending the sampled queries to the passages, we need to concatenate them.
