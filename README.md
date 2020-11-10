@@ -54,14 +54,14 @@ Download and verify the above files from the below table:
 
 File | Size | MD5 | Download
 :----|-----:|:----|:-----
-`doc_query_pairs.train.tsv` | 197 MB | `aa673014f93d43837ca4525b9a33422c` | [[GCS](https://storage.googleapis.com/doctttttquery_git/doc_query_pairs.train.tsv)] [[Dropbox](https://www.dropbox.com/s/5i64irveqvvegey/doc_query_pairs.train.tsv)]
-`queries.dev.small.tsv` | 283 KB | `41e980d881317a4a323129d482e9f5e5` | [[GCS](https://storage.googleapis.com/doctttttquery_git/queries.dev.small.tsv)] [[Dropbox](https://www.dropbox.com/s/hq6xjhswiz60siu/queries.dev.small.tsv)]
-`qrels.dev.small.tsv` | 140 KB| `38a80559a561707ac2ec0f150ecd1e8a` | [[GCS](https://storage.googleapis.com/doctttttquery_git/qrels.dev.small.tsv)] [[Dropbox](https://www.dropbox.com/s/khsplt2fhqwjs0v/qrels.dev.small.tsv)]
-`collection.tar.gz` | 987 MB | `87dd01826da3e2ad45447ba5af577628` | [[GCS](https://storage.googleapis.com/doctttttquery_git/collection.tar.gz)] [[Dropbox](https://www.dropbox.com/s/lvvpsx0cjk4vemv/collection.tar.gz)]
-`predicted_queries_topk_sampling.zip` | 7.9 GB | `8bb33ac317e76385d5047322db9b9c34` | [[GCS](https://storage.googleapis.com/doctttttquery_git/predicted_queries_topk_sampling.zip)] [[Dropbox](https://www.dropbox.com/s/uzkvv4gpj3a596a/predicted_queries_topk_sampling.zip)]
-`run.dev.small.tsv` | 133 MB | `d6c09a6606a5ed9f1a300c258e1930b2` | [[GCS](https://storage.googleapis.com/doctttttquery_git/run.dev.small.tsv)] [[Dropbox](https://www.dropbox.com/s/nc1drdkjpxxsngg/run.dev.small.tsv)]
-`t5-base.zip` | 357 MB | `881d3ca87c307b3eac05fae855c79014` | [[GCS](https://storage.googleapis.com/doctttttquery_git/t5-base.zip)] [[Dropbox](https://www.dropbox.com/s/q1nye6wfsvf5sen/t5-base.zip)]
-`t5-large.zip` | 1.2 GB | `21c7e625210b0ae872679bc36ed92d44` | [[GCS](https://storage.googleapis.com/doctttttquery_git/t5-large.zip)] [[Dropbox](https://www.dropbox.com/s/gzq8r68uk38bmum/t5-large.zip)]
+`doc_query_pairs.train.tsv` | 197 MB | `aa673014f93d43837ca4525b9a33422c` | [[GCS](https://storage.googleapis.com/doctttttquery_git/doc_query_pairs.train.tsv)] [[Dropbox](https://www.dropbox.com/s/5i64irveqvvegey/doc_query_pairs.train.tsv?dl=1)] [[GitLab](https://git.uwaterloo.ca/jimmylin/doc2query-data/raw/master/T5-passage/doc_query_pairs.train.tsv)]
+`queries.dev.small.tsv` | 283 KB | `41e980d881317a4a323129d482e9f5e5` | [[GCS](https://storage.googleapis.com/doctttttquery_git/queries.dev.small.tsv)] [[Dropbox](https://www.dropbox.com/s/hq6xjhswiz60siu/queries.dev.small.tsv?dl=1)] [[GitLab](https://git.uwaterloo.ca/jimmylin/doc2query-data/raw/master/T5-passage/queries.dev.small.tsv)]
+`qrels.dev.small.tsv` | 140 KB| `38a80559a561707ac2ec0f150ecd1e8a` | [[GCS](https://storage.googleapis.com/doctttttquery_git/qrels.dev.small.tsv)] [[Dropbox](https://www.dropbox.com/s/khsplt2fhqwjs0v/qrels.dev.small.tsv?dl=1)] [[GitLab](https://git.uwaterloo.ca/jimmylin/doc2query-data/raw/master/T5-passage/qrels.dev.small.tsv)]
+`collection.tar.gz` | 987 MB | `87dd01826da3e2ad45447ba5af577628` | [[GCS](https://storage.googleapis.com/doctttttquery_git/collection.tar.gz)] [[Dropbox](https://www.dropbox.com/s/lvvpsx0cjk4vemv/collection.tar.gz?dl=1)] [[GitLab](https://git.uwaterloo.ca/jimmylin/doc2query-data/raw/master/T5-passage/collection.tar.gz)]
+`predicted_queries_topk_sampling.zip` | 7.9 GB | `8bb33ac317e76385d5047322db9b9c34` | [[GCS](https://storage.googleapis.com/doctttttquery_git/predicted_queries_topk_sampling.zip)] [[Dropbox](https://www.dropbox.com/s/uzkvv4gpj3a596a/predicted_queries_topk_sampling.zip?dl=1)] [[GitLab](https://git.uwaterloo.ca/jimmylin/doc2query-data/raw/master/T5-passage/predicted_queries_topk_sampling.zip)]
+`run.dev.small.tsv` | 133 MB | `d6c09a6606a5ed9f1a300c258e1930b2` | [[GCS](https://storage.googleapis.com/doctttttquery_git/run.dev.small.tsv)] [[Dropbox](https://www.dropbox.com/s/nc1drdkjpxxsngg/run.dev.small.tsv?dl=1)] [[GitLab](https://git.uwaterloo.ca/jimmylin/doc2query-data/raw/master/T5-passage/run.dev.small.tsv)]
+`t5-base.zip` | 357 MB | `881d3ca87c307b3eac05fae855c79014` | [[GCS](https://storage.googleapis.com/doctttttquery_git/t5-base.zip)] [[Dropbox](https://www.dropbox.com/s/q1nye6wfsvf5sen/t5-base.zip?dl=1)] [[GitLab](https://git.uwaterloo.ca/jimmylin/doc2query-data/raw/master/T5-passage/t5-base.zip)]
+`t5-large.zip` | 1.2 GB | `21c7e625210b0ae872679bc36ed92d44` | [[GCS](https://storage.googleapis.com/doctttttquery_git/t5-large.zip)] [[Dropbox](https://www.dropbox.com/s/gzq8r68uk38bmum/t5-large.zip?dl=1)] [[GitLab](https://git.uwaterloo.ca/jimmylin/doc2query-data/raw/master/T5-passage/t5-large.zip)]
 
 ## Replicating MS MARCO Passage Ranking Results with Anserini
 
@@ -71,20 +71,25 @@ First, install Anserini (see [homepage](https://github.com/castorini/anserini) f
 
 ```bash
 sudo apt-get install maven
-git clone https://github.com/castorini/Anserini.git
-cd Anserini
+git clone --recurse-submodules https://github.com/castorini/anserini.git
+cd anserini
 mvn clean package appassembler:assemble
-tar xvfz eval/trec_eval.9.0.4.tar.gz -C eval/ && cd eval/trec_eval.9.0.4 && make
-cd ../ndeval && make
+cd tools/eval && tar xvfz trec_eval.9.0.4.tar.gz && cd trec_eval.9.0.4 && make && cd ../../..
+cd tools/eval/ndeval && make && cd ../../..
 ```
 
+For the purposes of this of this guide, we'll assume that `anserini` is cloned as a sub-directory of this repo, i.e., `docTTTTTquery/anserini/`.
 Next, download `queries.dev.small.tsv`, `qrels.dev.small.tsv`, `collection.tar.gz`, and `predicted_queries_topk_sampling.zip` using one of the options above.
+The first three files can go into base directory of the repo `docTTTTTquery/`, but put the zip file in a separate sub-directory `docTTTTTquery/passage-predictions`.
+The zip file contains a lot of individual files, so this will keep your directory structure manageable.
 
-Before appending the sampled queries to the passages, we need to concatenate them.
-The commands below create a file that contains 40 concatenated samples per line and 8,841,823 lines, one for each passage in the corpus.
-We concatenate only the first 40 samples as there is only a tiny gain in MRR@10 when using 80 samples (nevertheless, we provide 80 samples in case researchers want to use this data for other purposes).
+Before appending the predicted queries to the passages, we need to concatenate them.
+The commands below create a file that contains 40 concatenated predictions per line and 8,841,823 lines, one for each passage in the corpus.
+We concatenate only the first 40 predictions as there is only a tiny gain in MRR@10 when using all 80 predictions (nevertheless, we provide 80 predictions in case researchers want to use this data for other purposes).
 
 ```bash
+cd passage-predictions
+
 unzip predicted_queries_topk_sampling.zip
 
 for i in $(seq -f "%03g" 0 17); do
@@ -96,37 +101,45 @@ done
 cat predicted_queries_topk.txt???-1004000 > predicted_queries_topk.txt-1004000
 ```
 
-We can now append those queries to the original MS MARCO passage collection:
+As a sanity check:
 
 ```bash
-tar -xvf collection.tar.gz
+$ wc predicted_queries_topk.txt-1004000
+ 8841823 2253863941 12517353325 predicted_queries_topk.txt-1004000
+```
+
+Go back to your repo base directory `docTTTTTquery/`.
+We can now append the predicted queries to the original MS MARCO passage collection:
+
+```bash
+tar xvf collection.tar.gz
 
 python convert_msmarco_passage_to_anserini.py \
     --collection_path=collection.tsv \
-    --predictions=predicted_queries_topk.txt-1004000 \
-    --output_folder=./docs
+    --predictions=passage-predictions/predicted_queries_topk.txt-1004000 \
+    --output_folder=./ms-marco-passage-expanded
 ```
 
-Now, create an index using Anserini on the expanded passages (replace `/path/to/anserini/` with actual location of Anserini):
+Now, create an index using Anserini on the expanded passages (we're assuming Anserini is cloned as a sub-directory):
 
 ```bash
-sh /path/to/anserini/target/appassembler/bin/IndexCollection \
+sh anserini/target/appassembler/bin/IndexCollection \
   -collection JsonCollection -generator DefaultLuceneDocumentGenerator \
-  -threads 9 -input ./docs -index ./lucene-index
+  -threads 9 -input ms-marco-passage-expanded -index lucene-index-ms-marco-passage-expanded
 ```
 
 Once the expanded passages are indexed, we can retrieve 1000 passages per query for the MS MARCO dev set:
 
 ```bash
-sh /path/to/anserini/target/appassembler/bin/SearchMsmarco \
-  -index ./lucene-index -qid_queries ./queries.dev.small.tsv \
-  -output ./run.dev.small.tsv -hits 1000
+sh anserini/target/appassembler/bin/SearchMsmarco \
+  -index lucene-index-ms-marco-passage-expanded -queries queries.dev.small.tsv \
+  -output run.dev.small.tsv -hits 1000 -threads 8
 ```
 
 Finally, we evaluate the results using the MS MARCO eval script:
 
 ```bash
-python /path/to/anserini/src/main/python/msmarco/msmarco_eval.py ./qrels.dev.small.tsv ./run.dev.small.tsv
+python anserini/tools/eval/msmarco_eval.py qrels.dev.small.tsv run.dev.small.tsv
 ```
 
 The results should be:
