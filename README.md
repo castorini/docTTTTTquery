@@ -80,12 +80,16 @@ cd tools/eval/ndeval && make && cd ../../..
 
 For the purposes of this of this guide, we'll assume that `anserini` is cloned as a sub-directory of this repo, i.e., `docTTTTTquery/anserini/`.
 Next, download `queries.dev.small.tsv`, `qrels.dev.small.tsv`, `collection.tar.gz`, and `predicted_queries_topk_sampling.zip` using one of the options above.
+The first three files can go into base directory of the repo `docTTTTTquery/`, but put the zip file in a separate sub-directory `docTTTTTquery/passage-predictions`.
+The zip file contains a lot of individual files, so this will keep your directory structure manageable.
 
-Before appending the sampled queries to the passages, we need to concatenate them.
-The commands below create a file that contains 40 concatenated samples per line and 8,841,823 lines, one for each passage in the corpus.
-We concatenate only the first 40 samples as there is only a tiny gain in MRR@10 when using 80 samples (nevertheless, we provide 80 samples in case researchers want to use this data for other purposes).
+Before appending the predicted queries to the passages, we need to concatenate them.
+The commands below create a file that contains 40 concatenated predictions per line and 8,841,823 lines, one for each passage in the corpus.
+We concatenate only the first 40 predictions as there is only a tiny gain in MRR@10 when using all 80 predictions (nevertheless, we provide 80 predictions in case researchers want to use this data for other purposes).
 
 ```bash
+cd passage-predictions
+
 unzip predicted_queries_topk_sampling.zip
 
 for i in $(seq -f "%03g" 0 17); do
@@ -97,7 +101,8 @@ done
 cat predicted_queries_topk.txt???-1004000 > predicted_queries_topk.txt-1004000
 ```
 
-We can now append those queries to the original MS MARCO passage collection:
+Go back to your repo base directory `docTTTTTquery/`.
+We can now append the predicted queries to the original MS MARCO passage collection:
 
 ```bash
 tar -xvf collection.tar.gz
