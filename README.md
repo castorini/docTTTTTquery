@@ -101,38 +101,45 @@ done
 cat predicted_queries_topk.txt???-1004000 > predicted_queries_topk.txt-1004000
 ```
 
+As a sanity check:
+
+```bash
+$ wc predicted_queries_topk.txt-1004000
+ 8841823 2253863941 12517353325 predicted_queries_topk.txt-1004000
+```
+
 Go back to your repo base directory `docTTTTTquery/`.
 We can now append the predicted queries to the original MS MARCO passage collection:
 
 ```bash
-tar -xvf collection.tar.gz
+tar xvf collection.tar.gz
 
 python convert_msmarco_passage_to_anserini.py \
     --collection_path=collection.tsv \
-    --predictions=predicted_queries_topk.txt-1004000 \
-    --output_folder=./docs
+    --predictions=passage-predictions/predicted_queries_topk.txt-1004000 \
+    --output_folder=./ms-marco-passage-expanded
 ```
 
-Now, create an index using Anserini on the expanded passages (replace `/path/to/anserini/` with actual location of Anserini):
+Now, create an index using Anserini on the expanded passages (we're assuming Anserini is cloned as a sub-directory):
 
 ```bash
-sh /path/to/anserini/target/appassembler/bin/IndexCollection \
+sh anserini/target/appassembler/bin/IndexCollection \
   -collection JsonCollection -generator DefaultLuceneDocumentGenerator \
-  -threads 9 -input ./docs -index ./lucene-index
+  -threads 9 -input ms-marco-passage-expanded -index lucene-index-ms-marco-passage-expanded
 ```
 
 Once the expanded passages are indexed, we can retrieve 1000 passages per query for the MS MARCO dev set:
 
 ```bash
-sh /path/to/anserini/target/appassembler/bin/SearchMsmarco \
-  -index ./lucene-index -qid_queries ./queries.dev.small.tsv \
-  -output ./run.dev.small.tsv -hits 1000
+sh anserini/target/appassembler/bin/SearchMsmarco \
+  -index lucene-index-ms-marco-passage-expanded -queries queries.dev.small.tsv \
+  -output run.dev.small.tsv -hits 1000 -threads 8
 ```
 
 Finally, we evaluate the results using the MS MARCO eval script:
 
 ```bash
-python /path/to/anserini/src/main/python/msmarco/msmarco_eval.py ./qrels.dev.small.tsv ./run.dev.small.tsv
+python anserini/tools/eval/msmarco_eval.py qrels.dev.small.tsv run.dev.small.tsv
 ```
 
 The results should be:
