@@ -79,6 +79,7 @@ cd tools/eval/ndeval && make && cd ../../..
 ```
 
 For the purposes of this of this guide, we'll assume that `anserini` is cloned as a sub-directory of this repo, i.e., `docTTTTTquery/anserini/`.
+
 Next, download `queries.dev.small.tsv`, `qrels.dev.small.tsv`, `collection.tar.gz`, and `predicted_queries_topk_sampling.zip` using one of the options above.
 The first three files can go into base directory of the repo `docTTTTTquery/`, but put the zip file in a separate sub-directory `docTTTTTquery/passage-predictions`.
 The zip file contains a lot of individual files, so this will keep your directory structure manageable.
@@ -303,20 +304,20 @@ File | Size | MD5 | Download
 `predicted_queries_doc.tar.gz` | 2.2 GB | `4967214dfffbd33722837533c838143d` | [[Dropbox](https://www.dropbox.com/s/s4vwuampddu7677/predicted_queries_doc.tar.gz?dl=1)] [[GitLab](https://git.uwaterloo.ca/jimmylin/doc2query-data/raw/master/T5-doc/predicted_queries_doc.tar.gz)]
 `segment_doc_ids.txt` | 170 MB | `82c00bebab0d98c1dc07d78fac3d8b8d` | [[Dropbox](https://www.dropbox.com/s/wi6i2hzkcmbmusq/segment_doc_ids.txt?dl=1)] [[GitLab](https://git.uwaterloo.ca/jimmylin/doc2query-data/raw/master/T5-doc/segment_doc_ids.txt)]
 
-
 ### Per-Document Expansion
 
 The most straightforward way to use docTTTTTquery is to append the expanded queries to _each_ document.
-First, download the original corpus, the predicted queries, and a file mapping document segments to their document id:
+First, download the original corpus (`msmarco-docs.tsv.gz`), the predicted queries (`predicted_queries_doc.tar.gz`), and a file mapping document segments to their document id (`segment_doc_ids.txt`), using one of the options above.
+Put `predicted_queries_doc.tar.gz` in a sub-directory `doc-predictions/`.
 
-```
-gsutil cp gs://neuralresearcher_data/msmarco_doc/msmarco-docs.tsv.gz .
-gsutil cp gs://neuralresearcher_data/doc2query_t5_msmarco_doc/data/1/predicted_queries_topk_sample00?.txt???-1004000 .
-gsutil cp gs://neuralresearcher_data/doc2query_t5_msmarco_doc/data/1/segment_doc_ids.txt .
-```
+Merge the predicted queries into a single file; there are 10 predicted queries per document.
+This can be accomplished as follows:
 
-Merge the predicted queries into a single file. There are 10 predicted queries per document.
 ```bash
+cd doc-predictions/
+
+tar xvf predicted_queries_doc.tar.gz
+
 for SAMPLE in {000..009}; do
     cat predicted_queries_topk_sample$SAMPLE.txt???-1004000 > predicted_queries_topk_sample$SAMPLE.txt-1004000
 done
@@ -336,6 +337,7 @@ paste -d" " \
 ```
 
 We now append the queries to the original documents (this step takes approximately 10 minutes):
+
 ```bash
 python convert_msmarco_doc_to_anserini.py \
   --original_docs_path=./msmarco-docs.tsv.gz \
