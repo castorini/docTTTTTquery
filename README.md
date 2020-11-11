@@ -295,6 +295,15 @@ The MS MARCO document ranking tasking is similar to the MS MARCO passage ranking
 
 Like in the instructions for MS MARCO passage ranking task, we explain the process in reverse order (i.e., indexing, expansion, query prediction), since we believe there are more users interested in experimenting with the expanded index than expanding the document themselves.
 
+Here are the relevant files to download:
+
+File | Size | MD5 | Download
+:----|-----:|:----|:-----
+`msmarco-docs.tsv.gz` | 7.9 GB | `103b19e21ad324d8a5f1ab562425c0b4` | [[Dropbox](https://www.dropbox.com/s/t7r324wchnf98pm/msmarco-docs.tsv.gz?dl=1)] [[GitLab](https://git.uwaterloo.ca/jimmylin/doc2query-data/raw/master/T5-doc/msmarco-docs.tsv.gz)]
+`predicted_queries_doc.tar.gz` | 2.2 GB | `4967214dfffbd33722837533c838143d` | [[Dropbox](https://www.dropbox.com/s/s4vwuampddu7677/predicted_queries_doc.tar.gz?dl=1)] [[GitLab](https://git.uwaterloo.ca/jimmylin/doc2query-data/raw/master/T5-doc/predicted_queries_doc.tar.gz)]
+`segment_doc_ids.txt` | 170 MB | `82c00bebab0d98c1dc07d78fac3d8b8d` | [[Dropbox](https://www.dropbox.com/s/wi6i2hzkcmbmusq/segment_doc_ids.txt?dl=1)] [[GitLab](https://git.uwaterloo.ca/jimmylin/doc2query-data/raw/master/T5-doc/segment_doc_ids.txt)]
+
+
 ### Per-Document Expansion
 
 The most straightforward way to use docTTTTTquery is to append the expanded queries to _each_ document.
