@@ -322,7 +322,18 @@ for i in $(seq -f "%03g" 0 9); do
     cat predicted_queries_doc_sample${i}.txt???-1004000 > predicted_queries_doc_sample${i}_all.txt
 done
 
-cat predicted_queries_doc_sample*_all.txt > predicted_queries_doc_sample_all.txt
+paste -d" " \
+  predicted_queries_doc_sample000_all.txt \
+  predicted_queries_doc_sample001_all.txt \
+  predicted_queries_doc_sample002_all.txt \
+  predicted_queries_doc_sample003_all.txt \
+  predicted_queries_doc_sample004_all.txt \
+  predicted_queries_doc_sample005_all.txt \
+  predicted_queries_doc_sample006_all.txt \
+  predicted_queries_doc_sample007_all.txt \
+  predicted_queries_doc_sample008_all.txt \
+  predicted_queries_doc_sample009_all.txt \
+   > predicted_queries_doc_sample_all.txt
 ```
 
 We now append the queries to the original documents (this step takes approximately 10 minutes):
@@ -340,9 +351,9 @@ As above, we'll assume that Anserini is cloned as a sub-directory of this repo, 
 This step takes approximately 40 minutes:
 
 ```bash
-sh anserini/target/appassembler/bin/IndexCollection \
-  -collection JsonCollection -generator DefaultLuceneDocumentGenerator \
-  -threads 1 -input msmarco-doc-expanded -index lucene-index-msmarco-doc-expanded
+sh anserini/target/appassembler/bin/IndexCollection -collection JsonCollection \
+  -generator DefaultLuceneDocumentGenerator -threads 1 \
+  -input msmarco-doc-expanded -index lucene-index-msmarco-doc-expanded
 ```
 
 We can then retrieve the documents using the dev queries (this step takes approximately 10 minutes):
@@ -351,14 +362,14 @@ We can then retrieve the documents using the dev queries (this step takes approx
 sh anserini/target/appassembler/bin/SearchCollection \
   -index lucene-index-msmarco-doc-expanded \
   -topicreader TsvString -topics anserini/src/main/resources/topics-and-qrels/topics.msmarco-doc.dev.txt \
-  -output run.msmarco-doc.dev.small.txt -bm25
+  -output run.msmarco-doc-expanded.dev.small.txt -bm25
 ```
 
 And evaluate using `trec_eval` tool:
 
 ```bash
 anserini/tools/eval/trec_eval.9.0.4/trec_eval -m map -m recall.1000 \
-  anserini/src/main/resources/topics-and-qrels/qrels.msmarco-doc.dev.txt run.msmarco-doc.dev.small.txt
+  anserini/src/main/resources/topics-and-qrels/qrels.msmarco-doc.dev.txt run.msmarco-doc-expanded.dev.small.txt
 ```
 
 The output should be:
@@ -382,54 +393,51 @@ In this approach, we split the documents into segments and append the expanded q
 We then index the segments of this expanded corpus.
 
 We will reuse the file `predicted_queries_topk.txt-1004000` that contains all the predicted queries from last section. We can now append the queries to the segmented documents.
+
 ```
 python convert_segmented_msmarco_doc_to_anserini.py \
-  --original_docs_path=./msmarco-docs.tsv.gz \
-  --doc_ids_path=./segment_doc_ids.txt \
-  --predictions_path=./predicted_queries_topk.txt-1004000 \
-  --output_docs_path=./segmented_expanded_docs/docs.json
+  --original_docs_path=msmarco-docs.tsv.gz \
+  --doc_ids_path=segment_doc_ids.txt \
+  --predictions_path=doc-predictions/predicted_queries_doc_sample_all.txt \
+  --output_docs_path=msmarco-doc-expanded-segmented/docs.json
 ```
 
 We index the segmented documents with Anserini:
+
 ```bash
-sh ${PATH_TO_ANSERINI}/target/appassembler/bin/IndexCollection \
-  -collection JsonCollection  \
-  -generator DefaultLuceneDocumentGenerator \
-  -input ./segmented_expanded_docs \
-  -index ./segmented-docs-index \
-  -threads 6
+sh anserini/target/appassembler/bin/IndexCollection -collection JsonCollection \
+  -generator DefaultLuceneDocumentGenerator -threads 1 \
+  -input msmarco-doc-expanded-segmented -index lucene-index-msmarco-doc-expanded-segmented
 ```
 
 Then, we can retrieve the top 10k segments with dev queries:
+
 ```
-sh ${PATH_TO_ANSERINI}/target/appassembler/bin/SearchCollection \
-  -topicreader TsvString \
-  -index ./segmented-docs-index \
-  -topics ${PATH_TO_ANSERINI}/src/main/resources/topics-and-qrels/topics.msmarco-doc.dev.txt \
-  -output ./run.dev.seg.small.txt \
-  -hits 10000 \
-  -bm25 \
-  -threads 6
+sh anserini/target/appassembler/bin/SearchCollection \
+  -index lucene-index-msmarco-doc-expanded-segmented \
+  -topicreader TsvString -topics anserini/src/main/resources/topics-and-qrels/topics.msmarco-doc.dev.txt \
+  -output run.msmarco-doc-expanded-segmented-10k.dev.small.txt -bm25 -hits 10000
 ```
 
 After that, we will aggregate the top 10000 segments into top 1000 document:
+
 ```
-python convert_seg_to_doc.py
-  --input ./run.dev.seg.small.txt
-  --output ./run.dev.seg.top1k.small.txt
+python convert_seg_to_doc.py \
+  --input run.msmarco-doc-expanded-segmented-10k.dev.small.txt \
+  --output run.msmarco-doc-expanded-segmented-1k.dev.small.txt \
   --hits 1000
 ```
 
 Finally, we can evaluate them.
+
 ```
-bash
-${PATH_TO_ANSERINI}/tools/eval/trec_eval.9.0.4/trec_eval \
-  -m map -m recall.1000 \
-  ${PATH_TO_ANSERINI}/src/main/resources/topics-and-qrels/qrels.msmarco-doc.dev.txt \
-  ./run.dev.seg.top1k.small.txt
+anserini/tools/eval/trec_eval.9.0.4/trec_eval -m map -m recall.1000 \
+  anserini/src/main/resources/topics-and-qrels/qrels.msmarco-doc.dev.txt \
+  run.msmarco-doc-expanded-segmented-1k.dev.small.txt
 ```
 
 The output should be:
+
 ```
 map                   	all	0.3182
 recall_1000           	all	0.949
