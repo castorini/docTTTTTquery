@@ -59,7 +59,7 @@ for doc_id, predicted_queries_partial in tqdm(zip(open(args.doc_ids_path),
     doc_seg = f'{doc_id}#{seg_id}'
     if seg_id < len(segments):
         segment = segments[seg_id]
-        expanded_text = f'{doc_url} {doc_title} {doc_text} {predicted_queries_partial}'
+        expanded_text = f'{doc_url} {doc_title} {segment} {predicted_queries_partial}'
         output_dict = {'id': doc_seg, 'contents': expanded_text}
         f_out.write(json.dumps(output_dict) + '\n')  
     doc_id_ref = doc_id  
