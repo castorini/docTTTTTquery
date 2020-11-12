@@ -292,9 +292,9 @@ t5_mesh_transformer  \
 ## Replicating MS MARCO Document Ranking Results with Anserini
 
 Here we detail how to replicate docTTTTTquery runs for the MS MARCO _document_ ranking task.
-The MS MARCO document ranking tasking is similar to the MS MARCO passage ranking task, but the corpus contains longer documents, which need to be split into shorter segments before being fed to docTTTTTquery.
+The MS MARCO document ranking task is similar to the MS MARCO passage ranking task, but the corpus contains longer documents, which need to be split into shorter segments before being fed to docTTTTTquery.
 
-Like in the instructions for MS MARCO passage ranking task, we explain the process in reverse order (i.e., indexing, expansion, query prediction), since we believe there are more users interested in experimenting with the expanded index than expanding the document themselves.
+Like the instructions for MS MARCO passage ranking task, we explain the process in reverse order (i.e., indexing, expansion, query prediction), since we believe there are more users interested in experimenting with the expanded index than expanding the document themselves.
 
 Here are the relevant files to download:
 
