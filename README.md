@@ -336,7 +336,16 @@ paste -d" " \
    > predicted_queries_doc_sample_all.txt
 ```
 
-We now append the queries to the original documents (this step takes approximately 10 minutes):
+Sanity check:
+
+```bash
+$ md5sum predicted_queries_doc_sample_all.txt 
+b01b2fbbb8d382684a80fbf51efbca93  predicted_queries_doc_sample_all.txt
+$ wc predicted_queries_doc_sample_all.txt 
+  20545677 1379262573 7672087649 predicted_queries_doc_sample_all.txt
+```
+
+We now append the queries to the original documents (this step takes approximately 10 minutes, the counter needs to get to 20545677):
 
 ```bash
 python convert_msmarco_doc_to_anserini.py \
@@ -346,7 +355,7 @@ python convert_msmarco_doc_to_anserini.py \
   --output_docs_path=msmarco-doc-expanded/docs.json
 ```
 
-Once we have the expanded documents, the next step is to build an index with Anserini.
+Once we have the expanded documents (about 29 GB in size), the next step is to build an index with Anserini.
 As above, we'll assume that Anserini is cloned as a sub-directory of this repo, i.e., `docTTTTTquery/anserini/`.
 This step takes approximately 40 minutes:
 
@@ -392,7 +401,8 @@ Although per-document expansion is the most straightforward way to use docTTTTTq
 In this approach, we split the documents into segments and append the expanded queries to _each_ segment.
 We then index the segments of this expanded corpus.
 
-We will reuse the file `predicted_queries_topk.txt-1004000` that contains all the predicted queries from last section. We can now append the queries to the segmented documents.
+We will reuse the file `predicted_queries_doc_sample_all.txt` that contains all the predicted queries from last section.
+We can now append the queries to the segmented documents.
 
 ```
 python convert_segmented_msmarco_doc_to_anserini.py \
