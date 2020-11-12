@@ -134,13 +134,13 @@ Once the expanded passages are indexed, we can retrieve 1000 passages per query 
 ```bash
 sh anserini/target/appassembler/bin/SearchMsmarco \
   -index lucene-index-msmarco-passage-expanded -queries queries.dev.small.tsv \
-  -output run.dev.small.tsv -hits 1000 -threads 8
+  -output run.msmarco-passage-expanded.dev.small.txt -hits 1000 -threads 8
 ```
 
 Finally, we evaluate the results using the MS MARCO eval script:
 
 ```bash
-python anserini/tools/eval/msmarco_eval.py qrels.dev.small.tsv run.dev.small.tsv
+python anserini/tools/eval/msmarco_eval.py qrels.dev.small.tsv run.msmarco-passage-expanded.dev.small.txt
 ```
 
 The results should be:
