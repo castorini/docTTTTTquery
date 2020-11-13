@@ -116,9 +116,9 @@ We can now append the predicted queries to the original MS MARCO passage collect
 tar xvf collection.tar.gz
 
 python convert_msmarco_passage_to_anserini.py \
-    --collection_path=collection.tsv \
-    --predictions=passage-predictions/predicted_queries_topk.txt-1004000 \
-    --output_folder=msmarco-passage-expanded
+  --collection_path=collection.tsv \
+  --predictions=passage-predictions/predicted_queries_topk.txt-1004000 \
+  --output_folder=msmarco-passage-expanded
 ```
 
 Now, create an index using Anserini on the expanded passages (we're assuming Anserini is cloned as a sub-directory):
