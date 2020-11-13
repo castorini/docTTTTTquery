@@ -79,6 +79,7 @@ cd tools/eval/ndeval && make && cd ../../..
 ```
 
 For the purposes of this of this guide, we'll assume that `anserini` is cloned as a sub-directory of this repo, i.e., `docTTTTTquery/anserini/`.
+
 Next, download `queries.dev.small.tsv`, `qrels.dev.small.tsv`, `collection.tar.gz`, and `predicted_queries_topk_sampling.zip` using one of the options above.
 The first three files can go into base directory of the repo `docTTTTTquery/`, but put the zip file in a separate sub-directory `docTTTTTquery/passage-predictions`.
 The zip file contains a lot of individual files, so this will keep your directory structure manageable.
@@ -115,9 +116,9 @@ We can now append the predicted queries to the original MS MARCO passage collect
 tar xvf collection.tar.gz
 
 python convert_msmarco_passage_to_anserini.py \
-    --collection_path=collection.tsv \
-    --predictions=passage-predictions/predicted_queries_topk.txt-1004000 \
-    --output_folder=./ms-marco-passage-expanded
+  --collection_path=collection.tsv \
+  --predictions=passage-predictions/predicted_queries_topk.txt-1004000 \
+  --output_folder=msmarco-passage-expanded
 ```
 
 Now, create an index using Anserini on the expanded passages (we're assuming Anserini is cloned as a sub-directory):
@@ -125,21 +126,21 @@ Now, create an index using Anserini on the expanded passages (we're assuming Ans
 ```bash
 sh anserini/target/appassembler/bin/IndexCollection \
   -collection JsonCollection -generator DefaultLuceneDocumentGenerator \
-  -threads 9 -input ms-marco-passage-expanded -index lucene-index-ms-marco-passage-expanded
+  -threads 9 -input msmarco-passage-expanded -index lucene-index-msmarco-passage-expanded
 ```
 
 Once the expanded passages are indexed, we can retrieve 1000 passages per query for the MS MARCO dev set:
 
 ```bash
 sh anserini/target/appassembler/bin/SearchMsmarco \
-  -index lucene-index-ms-marco-passage-expanded -queries queries.dev.small.tsv \
-  -output run.dev.small.tsv -hits 1000 -threads 8
+  -index lucene-index-msmarco-passage-expanded -queries queries.dev.small.tsv \
+  -output run.msmarco-passage-expanded.dev.small.txt -hits 1000 -threads 8
 ```
 
 Finally, we evaluate the results using the MS MARCO eval script:
 
 ```bash
-python anserini/tools/eval/msmarco_eval.py qrels.dev.small.tsv run.dev.small.tsv
+python anserini/tools/eval/msmarco_eval.py qrels.dev.small.tsv run.msmarco-passage-expanded.dev.small.txt
 ```
 
 The results should be:
@@ -291,9 +292,9 @@ t5_mesh_transformer  \
 ## Replicating MS MARCO Document Ranking Results with Anserini
 
 Here we detail how to replicate docTTTTTquery runs for the MS MARCO _document_ ranking task.
-The MS MARCO document ranking tasking is similar to the MS MARCO passage ranking task, but the corpus contains longer documents, which need to be split into shorter segments before being fed to docTTTTTquery.
+The MS MARCO document ranking task is similar to the MS MARCO passage ranking task, but the corpus contains longer documents, which need to be split into shorter segments before being fed to docTTTTTquery.
 
-Like in the instructions for MS MARCO passage ranking task, we explain the process in reverse order (i.e., indexing, expansion, query prediction), since we believe there are more users interested in experimenting with the expanded index than expanding the document themselves.
+Like the instructions for MS MARCO passage ranking task, we explain the process in reverse order (i.e., indexing, expansion, query prediction), since we believe there are more users interested in experimenting with the expanded index than expanding the document themselves.
 
 Here are the relevant files to download:
 
@@ -303,83 +304,92 @@ File | Size | MD5 | Download
 `predicted_queries_doc.tar.gz` | 2.2 GB | `4967214dfffbd33722837533c838143d` | [[Dropbox](https://www.dropbox.com/s/s4vwuampddu7677/predicted_queries_doc.tar.gz?dl=1)] [[GitLab](https://git.uwaterloo.ca/jimmylin/doc2query-data/raw/master/T5-doc/predicted_queries_doc.tar.gz)]
 `segment_doc_ids.txt` | 170 MB | `82c00bebab0d98c1dc07d78fac3d8b8d` | [[Dropbox](https://www.dropbox.com/s/wi6i2hzkcmbmusq/segment_doc_ids.txt?dl=1)] [[GitLab](https://git.uwaterloo.ca/jimmylin/doc2query-data/raw/master/T5-doc/segment_doc_ids.txt)]
 
-
 ### Per-Document Expansion
 
 The most straightforward way to use docTTTTTquery is to append the expanded queries to _each_ document.
-First, download the original corpus, the predicted queries, and a file mapping document segments to their document id:
+First, download the original corpus (`msmarco-docs.tsv.gz`), the predicted queries (`predicted_queries_doc.tar.gz`), and a file mapping document segments to their document id (`segment_doc_ids.txt`), using one of the options above.
+Put `predicted_queries_doc.tar.gz` in a sub-directory `doc-predictions/`.
 
-```
-gsutil cp gs://neuralresearcher_data/msmarco_doc/msmarco-docs.tsv.gz .
-gsutil cp gs://neuralresearcher_data/doc2query_t5_msmarco_doc/data/1/predicted_queries_topk_sample00?.txt???-1004000 .
-gsutil cp gs://neuralresearcher_data/doc2query_t5_msmarco_doc/data/1/segment_doc_ids.txt .
-```
+Merge the predicted queries into a single file; there are 10 predicted queries per document.
+This can be accomplished as follows:
 
-Merge the predicted queries into a single file. There are 10 predicted queries per document.
 ```bash
-for SAMPLE in {000..009}; do
-    cat predicted_queries_topk_sample$SAMPLE.txt???-1004000 > predicted_queries_topk_sample$SAMPLE.txt-1004000
+cd doc-predictions/
+
+tar xvfz predicted_queries_doc.tar.gz
+
+for i in $(seq -f "%03g" 0 9); do
+    cat predicted_queries_doc_sample${i}.txt???-1004000 > predicted_queries_doc_sample${i}_all.txt
 done
 
 paste -d" " \
-  predicted_queries_topk_sample000.txt-1004000 \
-  predicted_queries_topk_sample001.txt-1004000 \
-  predicted_queries_topk_sample002.txt-1004000 \
-  predicted_queries_topk_sample003.txt-1004000 \
-  predicted_queries_topk_sample004.txt-1004000 \
-  predicted_queries_topk_sample005.txt-1004000 \
-  predicted_queries_topk_sample006.txt-1004000 \
-  predicted_queries_topk_sample007.txt-1004000 \
-  predicted_queries_topk_sample008.txt-1004000 \
-  predicted_queries_topk_sample009.txt-1004000 \
-  > predicted_queries_topk.txt-1004000
+  predicted_queries_doc_sample000_all.txt \
+  predicted_queries_doc_sample001_all.txt \
+  predicted_queries_doc_sample002_all.txt \
+  predicted_queries_doc_sample003_all.txt \
+  predicted_queries_doc_sample004_all.txt \
+  predicted_queries_doc_sample005_all.txt \
+  predicted_queries_doc_sample006_all.txt \
+  predicted_queries_doc_sample007_all.txt \
+  predicted_queries_doc_sample008_all.txt \
+  predicted_queries_doc_sample009_all.txt \
+   > predicted_queries_doc_sample_all.txt
 ```
 
-We now append the queries to the original documents (this step takes approximately 10 minutes):
+Sanity check:
+
+```bash
+$ md5sum predicted_queries_doc_sample_all.txt 
+b01b2fbbb8d382684a80fbf51efbca93  predicted_queries_doc_sample_all.txt
+$ wc predicted_queries_doc_sample_all.txt 
+  20545677 1379262573 7672087649 predicted_queries_doc_sample_all.txt
+```
+
+We now append the queries to the original documents (this step takes approximately 10 minutes, the counter needs to get to 20545677):
+
 ```bash
 python convert_msmarco_doc_to_anserini.py \
-  --original_docs_path=./msmarco-docs.tsv.gz \
-  --doc_ids_path=./segment_doc_ids.txt \
-  --predictions_path=./predicted_queries_topk.txt-1004000 \
-  --output_docs_path=./expanded_docs/docs.json
+  --original_docs_path=msmarco-docs.tsv.gz \
+  --doc_ids_path=segment_doc_ids.txt \
+  --predictions_path=doc-predictions/predicted_queries_doc_sample_all.txt \
+  --output_docs_path=msmarco-doc-expanded/docs.json
 ```
 
-Once we have the expanded document, we index them with Anserini (this step takes approximately 40 minutes):
+Once we have the expanded documents (about 29 GB in size), the next step is to build an index with Anserini.
+As above, we'll assume that Anserini is cloned as a sub-directory of this repo, i.e., `docTTTTTquery/anserini/`.
+This step takes approximately 40 minutes:
+
 ```bash
-sh ${PATH_TO_ANSERINI}/target/appassembler/bin/IndexCollection \
-  -collection JsonCollection  \
-  -generator DefaultLuceneDocumentGenerator \
-  -input ./expanded_docs \
-  -index ./lucene-index \
-  -threads 6
+sh anserini/target/appassembler/bin/IndexCollection -collection JsonCollection \
+  -generator DefaultLuceneDocumentGenerator -threads 1 \
+  -input msmarco-doc-expanded -index lucene-index-msmarco-doc-expanded
 ```
 
-We can then retrieve the documents using the dev queries (this step takes approximately 10 minutes).
+We can then retrieve the documents using the dev queries (this step takes approximately 10 minutes):
+
 ```
-sh ${PATH_TO_ANSERINI}/target/appassembler/bin/SearchCollection \
-  -topicreader TsvString \
-  -index ./lucene-index \
-  -topics ${PATH_TO_ANSERINI}/src/main/resources/topics-and-qrels/topics.msmarco-doc.dev.txt \
-  -output ./run.dev.small.txt \
-  -bm25 \
-  -threads 6
+sh anserini/target/appassembler/bin/SearchCollection \
+  -index lucene-index-msmarco-doc-expanded \
+  -topicreader TsvString -topics anserini/src/main/resources/topics-and-qrels/topics.msmarco-doc.dev.txt \
+  -output run.msmarco-doc-expanded.dev.small.txt -bm25
 ```
 
 And evaluate using `trec_eval` tool:
+
 ```bash
-${PATH_TO_ANSERINI}/eval/trec_eval.9.0.4/trec_eval \
-  -m map -m recall.1000 \
-  ${PATH_TO_ANSERINI}/src/main/resources/topics-and-qrels/qrels.msmarco-doc.dev.txt \
-  ./run.dev.small.txt
+anserini/tools/eval/trec_eval.9.0.4/trec_eval -m map -m recall.1000 \
+  anserini/src/main/resources/topics-and-qrels/qrels.msmarco-doc.dev.txt run.msmarco-doc-expanded.dev.small.txt
 ```
 
 The output should be:
+
 ```
 map                   	all	0.2886
 recall_1000           	all	0.9259
 ```
 
 In comparison, indexing with the original documents gives:
+
 ```
 map                     all     0.2310
 recall_1000             all     0.8856
@@ -391,58 +401,56 @@ Although per-document expansion is the most straightforward way to use docTTTTTq
 In this approach, we split the documents into segments and append the expanded queries to _each_ segment.
 We then index the segments of this expanded corpus.
 
-We will reuse the file `predicted_queries_topk.txt-1004000` that contains all the predicted queries from last section. We can now append the queries to the segmented documents.
+We will reuse the file `predicted_queries_doc_sample_all.txt` that contains all the predicted queries from last section.
+We can now append the queries to the segmented documents.
+
 ```
 python convert_segmented_msmarco_doc_to_anserini.py \
-  --original_docs_path=./msmarco-docs.tsv.gz \
-  --doc_ids_path=./segment_doc_ids.txt \
-  --predictions_path=./predicted_queries_topk.txt-1004000 \
-  --output_docs_path=./segmented_expanded_docs/docs.json
+  --original_docs_path=msmarco-docs.tsv.gz \
+  --doc_ids_path=segment_doc_ids.txt \
+  --predictions_path=doc-predictions/predicted_queries_doc_sample_all.txt \
+  --output_docs_path=msmarco-doc-expanded-segmented/docs.json
 ```
 
 We index the segmented documents with Anserini:
+
 ```bash
-sh ${PATH_TO_ANSERINI}/target/appassembler/bin/IndexCollection \
-  -collection JsonCollection  \
-  -generator DefaultLuceneDocumentGenerator \
-  -input ./segmented_expanded_docs \
-  -index ./segmented-docs-index \
-  -threads 6
+sh anserini/target/appassembler/bin/IndexCollection -collection JsonCollection \
+  -generator DefaultLuceneDocumentGenerator -threads 1 \
+  -input msmarco-doc-expanded-segmented -index lucene-index-msmarco-doc-expanded-segmented
 ```
 
 Then, we can retrieve the top 10k segments with dev queries:
+
 ```
-sh ${PATH_TO_ANSERINI}/target/appassembler/bin/SearchCollection \
-  -topicreader TsvString \
-  -index ./segmented-docs-index \
-  -topics ${PATH_TO_ANSERINI}/src/main/resources/topics-and-qrels/topics.msmarco-doc.dev.txt \
-  -output ./run.dev.seg.small.txt \
-  -hits 10000 \
-  -bm25 \
-  -threads 6
+sh anserini/target/appassembler/bin/SearchCollection \
+  -index lucene-index-msmarco-doc-expanded-segmented \
+  -topicreader TsvString -topics anserini/src/main/resources/topics-and-qrels/topics.msmarco-doc.dev.txt \
+  -output run.msmarco-doc-expanded-segmented-10k.dev.small.txt -bm25 -hits 10000
 ```
 
 After that, we will aggregate the top 10000 segments into top 1000 document:
+
 ```
-python convert_seg_to_doc.py
-  --input ./run.dev.seg.small.txt
-  --output ./run.dev.seg.top1k.small.txt
+python convert_seg_to_doc.py \
+  --input run.msmarco-doc-expanded-segmented-10k.dev.small.txt \
+  --output run.msmarco-doc-expanded-segmented-1k.dev.small.txt \
   --hits 1000
 ```
 
 Finally, we can evaluate them.
+
 ```
-bash
-${PATH_TO_ANSERINI}/tools/eval/trec_eval.9.0.4/trec_eval \
-  -m map -m recall.1000 \
-  ${PATH_TO_ANSERINI}/src/main/resources/topics-and-qrels/qrels.msmarco-doc.dev.txt \
-  ./run.dev.seg.top1k.small.txt
+anserini/tools/eval/trec_eval.9.0.4/trec_eval -m map -m recall.1000 \
+  anserini/src/main/resources/topics-and-qrels/qrels.msmarco-doc.dev.txt \
+  run.msmarco-doc-expanded-segmented-1k.dev.small.txt
 ```
 
 The output should be:
+
 ```
 map                   	all	0.3182
-recall_1000           	all	0.949
+recall_1000           	all	0.9490
 ```
 
 ## Predicting Queries from Documents: T5 Inference with TensorFlow
