@@ -450,7 +450,7 @@ The output should be:
 
 ```
 map                   	all	0.3182
-recall_1000           	all	0.949
+recall_1000           	all	0.9490
 ```
 
 ## Predicting Queries from Documents: T5 Inference with TensorFlow
