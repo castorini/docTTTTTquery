@@ -483,7 +483,7 @@ with TPUs to run it faster.
 
 We will use the docTTTTTquery model trained on the MS MARCO passage ranking dataset, so you need to upload it to your Google Storage bucket.
 ```bash
-wget https://storage.googleapis.com/doctttttquery_git/t5-base.zip
+wget https://git.uwaterloo.ca/jimmylin/doc2query-data/raw/master/T5-passage/t5-base.zip
 unzip t5-base.zip
 gsutil cp model.ckpt-1004000* gs://your_bucket/models/
 ```
