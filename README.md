@@ -292,7 +292,7 @@ t5_mesh_transformer  \
 ## Replicating MS MARCO Document Ranking Results with Anserini
 
 Here we detail how to replicate docTTTTTquery runs for the MS MARCO _document_ ranking task.
-The MS MARCO document ranking task is similar to the MS MARCO passage ranking task, but the corpus contains longer documents, which need to be split into shorter segments before being fed to docTTTTTquery.
+The MS MARCO document ranking task is similar to the MS MARCO passage ranking task, but the corpus contains longer documents, which need to be split into shorter passages before being fed to docTTTTTquery.
 
 Like the instructions for MS MARCO passage ranking task, we explain the process in reverse order (i.e., indexing, expansion, query prediction), since we believe there are more users interested in experimenting with the expanded index than expanding the document themselves.
 
@@ -302,12 +302,12 @@ File | Size | MD5 | Download
 :----|-----:|:----|:-----
 `msmarco-docs.tsv.gz` | 7.9 GB | `103b19e21ad324d8a5f1ab562425c0b4` | [[Dropbox](https://www.dropbox.com/s/t7r324wchnf98pm/msmarco-docs.tsv.gz?dl=1)] [[GitLab](https://git.uwaterloo.ca/jimmylin/doc2query-data/raw/master/T5-doc/msmarco-docs.tsv.gz)]
 `predicted_queries_doc.tar.gz` | 2.2 GB | `4967214dfffbd33722837533c838143d` | [[Dropbox](https://www.dropbox.com/s/s4vwuampddu7677/predicted_queries_doc.tar.gz?dl=1)] [[GitLab](https://git.uwaterloo.ca/jimmylin/doc2query-data/raw/master/T5-doc/predicted_queries_doc.tar.gz)]
-`segment_doc_ids.txt` | 170 MB | `82c00bebab0d98c1dc07d78fac3d8b8d` | [[Dropbox](https://www.dropbox.com/s/wi6i2hzkcmbmusq/segment_doc_ids.txt?dl=1)] [[GitLab](https://git.uwaterloo.ca/jimmylin/doc2query-data/raw/master/T5-doc/segment_doc_ids.txt)]
+`msmarco_doc_passage_ids.txt` | 170 MB | `82c00bebab0d98c1dc07d78fac3d8b8d` | [[Dropbox](https://www.dropbox.com/s/wi6i2hzkcmbmusq/msmarco_doc_passage_ids.txt?dl=1)] [[GitLab](https://git.uwaterloo.ca/jimmylin/doc2query-data/raw/master/T5-doc/msmarco_doc_passage_ids.txt)]
 
 ### Per-Document Expansion
 
 The most straightforward way to use docTTTTTquery is to append the expanded queries to _each_ document.
-First, download the original corpus (`msmarco-docs.tsv.gz`), the predicted queries (`predicted_queries_doc.tar.gz`), and a file mapping document segments to their document id (`segment_doc_ids.txt`), using one of the options above.
+First, download the original corpus (`msmarco-docs.tsv.gz`), the predicted queries (`predicted_queries_doc.tar.gz`), and a file mapping passages to their document ids (`msmarco_doc_passage_ids.txt`), using one of the options above.
 Put `predicted_queries_doc.tar.gz` in a sub-directory `doc-predictions/`.
 
 Merge the predicted queries into a single file; there are 10 predicted queries per document.
@@ -350,7 +350,7 @@ We now append the queries to the original documents (this step takes approximate
 ```bash
 python convert_msmarco_doc_to_anserini.py \
   --original_docs_path=msmarco-docs.tsv.gz \
-  --doc_ids_path=segment_doc_ids.txt \
+  --doc_ids_path=msmarco_doc_passage_ids.txt \
   --predictions_path=doc-predictions/predicted_queries_doc_sample_all.txt \
   --output_docs_path=msmarco-doc-expanded/docs.json
 ```
@@ -395,55 +395,49 @@ map                     all     0.2310
 recall_1000             all     0.8856
 ```
 
-### Per-Segment Expansion
+### Per-Passage Expansion
 
-Although per-document expansion is the most straightforward way to use docTTTTTquery, we have found that _per segment_ expansion works even better.
-In this approach, we split the documents into segments and append the expanded queries to _each_ segment.
-We then index the segments of this expanded corpus.
+Although per-document expansion is the most straightforward way to use docTTTTTquery, we have found that _per passage_ expansion works even better.
+In this approach, we split the documents into passages and append the expanded queries to _each_ passage.
+We then index the passages of this expanded corpus.
 
 We will reuse the file `predicted_queries_doc_sample_all.txt` that contains all the predicted queries from last section.
-We can now append the queries to the segmented documents.
+We can now append the queries to the passages.
 
 ```
-python convert_segmented_msmarco_doc_to_anserini.py \
+python convert_msmarco_passages_doc_to_anserini.py \
   --original_docs_path=msmarco-docs.tsv.gz \
-  --doc_ids_path=segment_doc_ids.txt \
+  --doc_ids_path=msmarco_doc_passage_ids.txt \
   --predictions_path=doc-predictions/predicted_queries_doc_sample_all.txt \
-  --output_docs_path=msmarco-doc-expanded-segmented/docs.json
+  --output_docs_path=msmarco-doc-expanded-passage/docs.json
 ```
 
-We index the segmented documents with Anserini:
+We index the passages with Anserini:
 
 ```bash
 sh anserini/target/appassembler/bin/IndexCollection -collection JsonCollection \
   -generator DefaultLuceneDocumentGenerator -threads 1 \
-  -input msmarco-doc-expanded-segmented -index lucene-index-msmarco-doc-expanded-segmented
+  -input msmarco-doc-expanded-passage -index lucene-index-msmarco-doc-expanded-passage
 ```
 
-Then, we can retrieve the top 10k segments with dev queries:
+Then, we can retrieve the top 1k passages with dev queries:
 
 ```
 sh anserini/target/appassembler/bin/SearchCollection \
-  -index lucene-index-msmarco-doc-expanded-segmented \
+  -index lucene-index-msmarco-doc-expanded-passage \
   -topicreader TsvString -topics anserini/src/main/resources/topics-and-qrels/topics.msmarco-doc.dev.txt \
-  -output run.msmarco-doc-expanded-segmented-10k.dev.small.txt -bm25 -hits 10000
+  -output run.msmarco-doc-expanded-passage.dev.small.txt \
+  -bm25 -hits 10000 -selectMaxPassage -selectMaxPassage.delimiter "#" -selectMaxPassage.hits 1000
 ```
 
-After that, we will aggregate the top 10000 segments into top 1000 document:
+In a bit more detail, we retrieve the top 10k passages per query, but then use Anserini's `-selectMaxPassage` option to select only the best (highest-scoring) passage from each document, finally returning top 1k docid per query.
 
-```
-python convert_seg_to_doc.py \
-  --input run.msmarco-doc-expanded-segmented-10k.dev.small.txt \
-  --output run.msmarco-doc-expanded-segmented-1k.dev.small.txt \
-  --hits 1000
-```
-
-Finally, we can evaluate them.
+Evaluation:
 
 ```
 anserini/tools/eval/trec_eval.9.0.4/trec_eval -m map -m recall.1000 \
   anserini/src/main/resources/topics-and-qrels/qrels.msmarco-doc.dev.txt \
-  run.msmarco-doc-expanded-segmented-1k.dev.small.txt
+  run.msmarco-doc-expanded-passage.dev.small.txt
 ```
 
 The output should be:
@@ -473,8 +467,8 @@ We now segment each document using a sliding window of 10 sentences and stride o
 for ITER in {00..32}; do
     python convert_msmarco_doc_to_t5_format.py \
         --corpus_path=msmarco-docs.tsv$ITER \
-        --output_segment_texts_path=${OUTPUT_DIR}/segment_texts.txt$ITER \
-        --output_segment_doc_ids_path=${OUTPUT_DIR}/segment_doc_ids.txt$ITER
+        --output_passage_texts_path=${OUTPUT_DIR}/passage_texts.txt$ITER \
+        --output_passage_doc_ids_path=${OUTPUT_DIR}/msmarco_doc_passage_ids.txt$ITER
 done
 ```
 
@@ -488,7 +482,8 @@ unzip t5-base.zip
 gsutil cp model.ckpt-1004000* gs://your_bucket/models/
 ```
 
-Run the command below to sample one question per segment (note that you will need to start a TPU).
+Run the command below to sample one question per passage (note that you will need to start a TPU).
+
 ```bash
 for ITER in {00..32}; do
     t5_mesh_transformer \
@@ -502,7 +497,7 @@ for ITER in {00..32}; do
       --gin_param="infer_checkpoint_step = 1004000" \
       --gin_param="utils.run.sequence_length = {'inputs': 512, 'targets': 64}" \
       --gin_param="Bitransformer.decode.max_decode_length = 64" \
-      --gin_param="input_filename = './segment_texts.txt$ITER'" \
+      --gin_param="input_filename = './passage_texts.txt$ITER'" \
       --gin_param="output_filename = './predicted_queries_topk_sample.txt$ITER'" \
       --gin_param="tokens_per_batch = 131072" \
       --gin_param="Bitransformer.decode.temperature = 1.0" \
