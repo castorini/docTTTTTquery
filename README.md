@@ -402,7 +402,7 @@ In this approach, we split the documents into passages and append the expanded q
 We then index the passages of this expanded corpus.
 
 We will reuse the file `predicted_queries_doc_sample_all.txt` that contains all the predicted queries from last section.
-We can now append the queries to the passages.
+To start, append the queries to the passages:
 
 ```
 python convert_msmarco_passages_doc_to_anserini.py \
@@ -412,7 +412,8 @@ python convert_msmarco_passages_doc_to_anserini.py \
   --output_docs_path=msmarco-doc-expanded-passage/docs.json
 ```
 
-We index the passages with Anserini:
+This step takes several hours (the counter needs to get to 20545677).
+Upon completion, index the passages with Anserini:
 
 ```bash
 sh anserini/target/appassembler/bin/IndexCollection -collection JsonCollection \
