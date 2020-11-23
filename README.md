@@ -286,7 +286,8 @@ t5_mesh_transformer  \
   --gin_param="tsv_dataset_fn.filename = 'gs://your_bucket/data/doc_query_pairs.train.tsv'" \
   --gin_file="learning_rate_schedules/constant_0_001.gin" \
   --gin_param="run.train_steps = 1004000" \
-  --gin_param="tokens_per_batch = 131072"
+  --gin_param="tokens_per_batch = 131072" \
+  --gin_param="utils.tpu_mesh_shape.tpu_topology ='v3-8'
 ```
 
 ## Replicating MS MARCO Document Ranking Results with Anserini
@@ -502,6 +503,7 @@ for ITER in {00..32}; do
       --gin_param="output_filename = './predicted_queries_topk_sample.txt$ITER'" \
       --gin_param="tokens_per_batch = 131072" \
       --gin_param="Bitransformer.decode.temperature = 1.0" \
-      --gin_param="Unitransformer.sample_autoregressive.sampling_keep_top_k = 10"
+      --gin_param="Unitransformer.sample_autoregressive.sampling_keep_top_k = 10" \
+      --gin_param="utils.tpu_mesh_shape.tpu_topology ='v3-8'
 done
 ```
