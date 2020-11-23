@@ -38,6 +38,11 @@ for doc_id_ref, predicted_queries_partial in tqdm(zip(open(args.doc_ids_path),
 
     predicted_queries.append(predicted_queries_partial)
 
+predicted_queries = ' '.join(predicted_queries)
+expanded_text = f'{doc_url} {doc_title} {doc_text} {predicted_queries}'
+output_dict = {'id': doc_id, 'contents': expanded_text}
+f_out.write(json.dumps(output_dict) + '\n')
+            
 f_corpus.close()
 f_out.close()
 print('Done!')
