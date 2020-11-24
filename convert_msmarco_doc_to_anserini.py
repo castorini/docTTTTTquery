@@ -5,6 +5,13 @@ import os
 
 from tqdm import tqdm
 
+def generate_output_dict(doc, predicted_queries):
+    doc_id, doc_url, doc_title, doc_text = doc[0], doc[1], doc[2], doc[3]
+    doc_text = doc_text.strip()
+    predicted_queries = ' '.join(predicted_queries)
+    expanded_text = f'{doc_url} {doc_title} {doc_text} {predicted_queries}'
+    output_dict = {'id': doc_id, 'contents': expanded_text}
+    return output_dict
 
 parser = argparse.ArgumentParser(
     description='Concatenate MS MARCO original docs with predicted queries')
@@ -27,17 +34,18 @@ for doc_id_ref, predicted_queries_partial in tqdm(zip(open(args.doc_ids_path),
     doc_id_ref = doc_id_ref.strip()
     if doc_id_ref != doc_id:
         if doc_id is not None:
-            predicted_queries = ' '.join(predicted_queries)
-            expanded_text = f'{doc_url} {doc_title} {doc_text} {predicted_queries}'
-            output_dict = {'id': doc_id, 'contents': expanded_text}
+            output_dict = generate_output_dict(doc, predicted_queries)
             f_out.write(json.dumps(output_dict) + '\n')
 
-        doc_id, doc_url, doc_title, doc_text = next(f_corpus).split('\t')
-        doc_text = doc_text.strip()
+        doc = next(f_corpus).split('\t')
+        doc_id = doc[0]
         predicted_queries = []
 
     predicted_queries.append(predicted_queries_partial)
 
+output_dict = generate_output_dict(doc, predicted_queries)
+f_out.write(json.dumps(output_dict) + '\n')
+            
 f_corpus.close()
 f_out.close()
 print('Done!')
