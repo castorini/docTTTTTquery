@@ -1,0 +1,27 @@
+.DS_Store
+anserini/
+*~
+
+# for MS MARCO passage
+collection.tar.gz
+passage-predictions/
+qrels.dev.small.tsv
+queries.dev.small.tsv
+collection.tsv
+
+lucene-index-msmarco-passage-expanded/
+msmarco-passage-expanded/
+run.msmarco-passage-expanded.dev.small.txt
+
+# for MS MARCO do
+doc-predictions/
+msmarco-docs.tsv.gz
+msmarco_doc_passage_ids.txt
+
+msmarco-doc-expanded/
+lucene-index-msmarco-doc-expanded/
+run.msmarco-doc-expanded.dev.small.txt
+
+msmarco-doc-expanded-passage/
+lucene-index-msmarco-doc-expanded-passage/
+run.msmarco-doc-expanded-passage.dev.small.txt
