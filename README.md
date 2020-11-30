@@ -449,6 +449,41 @@ map                   	all	0.3182
 recall_1000           	all	0.9490
 ```
 
+In comparison with per-passage expansion, we will use per passage _without expansion_ as the baseline. In this method, we will not append the predicted queries to the passages.
+
+We will first split the original documents into passages:
+```
+python convert_msmarco_passages_doc_to_anserini.py \
+  --original_docs_path=msmarco-docs.tsv.gz \
+  --doc_ids_path=msmarco_doc_passage_ids.txt \
+  --output_docs_path=msmarco-doc-passage/docs.json \
+  --no_expansion True
+```
+
+It will also take several hours, and the generated file will be 27G. Same as what we did for per-passage expansion, we will use Anserini to index the file, retrieve the top1k passages from them for the dev queries and evaluate them.
+
+```
+sh anserini/target/appassembler/bin/IndexCollection -collection JsonCollection \
+  -generator DefaultLuceneDocumentGenerator -threads 1 \
+  -input msmarco-doc-passage -index lucene-index-msmarco-doc-passage
+
+sh anserini/target/appassembler/bin/SearchCollection \
+  -index lucene-index-msmarco-doc-passage \
+  -topicreader TsvString -topics anserini/src/main/resources/topics-and-qrels/topics.msmarco-doc.dev.txt \
+  -output run.msmarco-doc-passage.dev.small.txt \
+  -bm25 -hits 10000 -selectMaxPassage -selectMaxPassage.delimiter "#" -selectMaxPassage.hits 1000
+
+anserini/tools/eval/trec_eval.9.0.4/trec_eval -m map -m recall.1000 \
+  anserini/src/main/resources/topics-and-qrels/qrels.msmarco-doc.dev.txt \
+  run.msmarco-doc-passage.dev.small.txt
+```
+
+The result is:
+```
+map                   	all	0.2688
+recall_1000           	all	0.9180
+```
+
 ## Predicting Queries from Documents: T5 Inference with TensorFlow
 
 If you want to predict the queries yourself, please follow the instructions below.
