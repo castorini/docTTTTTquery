@@ -28,8 +28,8 @@ parser = argparse.ArgumentParser(
     description='Concatenate MS MARCO original docs with predicted queries')
 parser.add_argument('--original_docs_path', required=True, help='MS MARCO .tsv corpus file.')
 parser.add_argument('--doc_ids_path', required=True, help='File mapping segments to doc ids.')
-parser.add_argument('--predictions_path', required=True, help='File containing predicted queries.')
 parser.add_argument('--output_docs_path', required=True, help='Output file in the anserini jsonl format.')
+parser.add_argument('--predictions_path', default=None, help='File containing predicted queries.')
 parser.add_argument('--max_length', default=10)
 parser.add_argument('--stride', default=5)
 args = parser.parse_args()
@@ -43,11 +43,14 @@ stride = args.stride
 nlp = spacy.blank("en")
 nlp.add_pipe(nlp.create_pipe("sentencizer"))
 
-print('Appending segments...')
+print('Spliting documents...')
 doc_id_ref = None
-for doc_id, predicted_queries_partial in tqdm(zip(open(args.doc_ids_path),
-                                                      open(args.predictions_path))):
-    doc_id = doc_id.strip()
+if args.predictions_path == None:
+    doc_ids_queries = zip(open(args.doc_ids_path))
+else:
+    doc_ids_queries = zip(open(args.doc_ids_path),open(args.predictions_path))
+for doc_id_query in tqdm(doc_ids_queries):
+    doc_id = doc_id_query[0].strip()
     if doc_id != doc_id_ref:
         f_doc_id, doc_url, doc_title, doc_text = next(f_corpus).split('\t')
         while f_doc_id != doc_id:
@@ -59,7 +62,11 @@ for doc_id, predicted_queries_partial in tqdm(zip(open(args.doc_ids_path),
     doc_seg = f'{doc_id}#{seg_id}'
     if seg_id < len(segments):
         segment = segments[seg_id]
-        expanded_text = f'{doc_url} {doc_title} {segment} {predicted_queries_partial}'
+        if args.predictions_path == None:
+            expanded_text = f'{doc_url} {doc_title} {segment}'
+        else:
+            predicted_queries_partial = doc_id_query[1]
+            expanded_text = f'{doc_url} {doc_title} {segment} {predicted_queries_partial}'
         output_dict = {'id': doc_seg, 'contents': expanded_text}
         f_out.write(json.dumps(output_dict) + '\n')  
     doc_id_ref = doc_id  
