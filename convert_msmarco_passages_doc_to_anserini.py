@@ -29,8 +29,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument('--original_docs_path', required=True, help='MS MARCO .tsv corpus file.')
 parser.add_argument('--doc_ids_path', required=True, help='File mapping segments to doc ids.')
 parser.add_argument('--output_docs_path', required=True, help='Output file in the anserini jsonl format.')
-parser.add_argument('--predictions_path', help='File containing predicted queries.')
-parser.add_argument('--no_expansion', default=False, type=bool, help='expand with predicted queries or not')
+parser.add_argument('--predictions_path', default=None, help='File containing predicted queries.')
 parser.add_argument('--max_length', default=10)
 parser.add_argument('--stride', default=5)
 args = parser.parse_args()
@@ -46,9 +45,9 @@ nlp.add_pipe(nlp.create_pipe("sentencizer"))
 
 print('Spliting documents...')
 doc_id_ref = None
-if args.no_expansion:
+if args.predictions_path == None:
     doc_ids_queries = zip(open(args.doc_ids_path))
-elif not args.no_expansion:
+else:
     doc_ids_queries = zip(open(args.doc_ids_path),open(args.predictions_path))
 for doc_id_query in tqdm(doc_ids_queries):
     doc_id = doc_id_query[0].strip()
@@ -63,9 +62,9 @@ for doc_id_query in tqdm(doc_ids_queries):
     doc_seg = f'{doc_id}#{seg_id}'
     if seg_id < len(segments):
         segment = segments[seg_id]
-        if args.no_expansion:
+        if args.predictions_path == None:
             expanded_text = f'{doc_url} {doc_title} {segment}'
-        elif not args.no_expansion:
+        else:
             predicted_queries_partial = doc_id_query[1]
             expanded_text = f'{doc_url} {doc_title} {segment} {predicted_queries_partial}'
         output_dict = {'id': doc_seg, 'contents': expanded_text}
