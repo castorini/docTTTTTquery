@@ -457,7 +457,6 @@ python convert_msmarco_passages_doc_to_anserini.py \
   --original_docs_path=msmarco-docs.tsv.gz \
   --doc_ids_path=msmarco_doc_passage_ids.txt \
   --output_docs_path=msmarco-doc-passage/docs.json \
-  --no_expansion True
 ```
 
 It will also take several hours, and the generated file will be 27G. Same as what we did for per-passage expansion, we will use Anserini to index the file, retrieve the top1k passages from them for the dev queries and evaluate them.
