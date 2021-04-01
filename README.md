@@ -164,24 +164,22 @@ First, install the library:
 pip install transformers
 ```
 
-Download and unzip `t5-base.zip` from the table above, and load the model checkpoint:
+Then load the model checkpoint:
 
 ```python
 import torch
-from transformers import T5Config, T5Tokenizer, T5ForConditionalGeneration
+from transformers import T5Tokenizer, T5ForConditionalGeneration
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-tokenizer = T5Tokenizer.from_pretrained('t5-base')
-config = T5Config.from_pretrained('t5-base')
-model = T5ForConditionalGeneration.from_pretrained(
-    'model.ckpt-1004000', from_tf=True, config=config)
+tokenizer = T5Tokenizer.from_pretrained('castorini/doc2query-t5-base-msmarco')
+model = T5ForConditionalGeneration.from_pretrained('castorini/doc2query-t5-base-msmarco')
 model.to(device)
 ```
 
-Sample 3 questions from a example document (don't forget to append the end-of-sequence token `</s>`):
+Sample 3 questions from a example document:
 ```python
-doc_text = 'The presence of communication amid scientific minds was equally important to the success of the Manhattan Project as scientific intellect was. The only cloud hanging over the impressive achievement of the atomic researchers and engineers is what their success truly meant; hundreds of thousands of innocent lives obliterated. </s>'
+doc_text = 'The presence of communication amid scientific minds was equally important to the success of the Manhattan Project as scientific intellect was. The only cloud hanging over the impressive achievement of the atomic researchers and engineers is what their success truly meant; hundreds of thousands of innocent lives obliterated.'
 
 input_ids = tokenizer.encode(doc_text, return_tensors='pt').to(device)
 outputs = model.generate(
