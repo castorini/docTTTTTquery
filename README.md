@@ -29,11 +29,11 @@ Why's the paper so short? Check out [our proposal for micropublications](https:/
 ## Quick Links
 
 + [Data and Trained Models: MS MARCO Passage Ranking Dataset](#Data-and-Trained-Models-MS-MARCO-Passage-Ranking-Dataset)
-+ [Replicating MS MARCO Passage Ranking Results with Anserini](#Replicating-MS-MARCO-Passage-Ranking-Results-with-Anserini)
++ [Reproducing MS MARCO Passage Ranking Results with Anserini](#Reproducing-MS-MARCO-Passage-Ranking-Results-with-Anserini)
 + [Predicting Queries from Passages: T5 Inference with PyTorch](#Predicting-Queries-from-Passages-T5-Inference-with-PyTorch)
 + [Predicting Queries from Passages: T5 Inference with TensorFlow](#Predicting-Queries-from-Passages-T5-Inference-with-TensorFlow)
 + [Learning a New Prediction Model: T5 Training with TensorFlow](#Learning-a-New-Prediction-Model-T5-Training-with-TensorFlow)
-+ [Replicating MS MARCO Document Ranking Results with Anserini](#Replicating-MS-MARCO-Document-Ranking-Results-with-Anserini)
++ [Reproducing MS MARCO Document Ranking Results with Anserini](#Reproducing-MS-MARCO-Document-Ranking-Results-with-Anserini)
 + [Predicting Queries from Documents: T5 Inference with TensorFlow](#Predicting-Queries-from-Documents-T5-Inference-with-TensorFlow)
 
 ## Data and Trained Models: MS MARCO Passage Ranking Dataset
@@ -63,9 +63,9 @@ File | Size | MD5 | Download
 `t5-base.zip` | 357 MB | `881d3ca87c307b3eac05fae855c79014` | [[Dropbox](https://www.dropbox.com/s/q1nye6wfsvf5sen/t5-base.zip?dl=1)] [[GitLab](https://git.uwaterloo.ca/jimmylin/doc2query-data/raw/master/T5-passage/t5-base.zip)]
 `t5-large.zip` | 1.2 GB | `21c7e625210b0ae872679bc36ed92d44` | [[Dropbox](https://www.dropbox.com/s/gzq8r68uk38bmum/t5-large.zip?dl=1)] [[GitLab](https://git.uwaterloo.ca/jimmylin/doc2query-data/raw/master/T5-passage/t5-large.zip)]
 
-## Replicating MS MARCO Passage Ranking Results with Anserini
+## Reproducing MS MARCO Passage Ranking Results with Anserini
 
-We provide instructions on how to replicate our docTTTTTquery results for the MS MARCO passage ranking task with the [Anserini](https://github.com/castorini/anserini) IR toolkit, using the predicted queries provided above.
+We provide instructions on how to reproduce our docTTTTTquery results for the MS MARCO passage ranking task with the [Anserini](https://github.com/castorini/anserini) IR toolkit, using the predicted queries provided above.
 
 First, install Anserini (see [homepage](https://github.com/castorini/anserini) for more details):
 
@@ -288,9 +288,9 @@ t5_mesh_transformer  \
   --gin_param="utils.tpu_mesh_shape.tpu_topology ='v3-8'
 ```
 
-## Replicating MS MARCO Document Ranking Results with Anserini
+## Reproducing MS MARCO Document Ranking Results with Anserini
 
-Here we detail how to replicate docTTTTTquery runs for the MS MARCO _document_ ranking task.
+Here we detail how to reproduce docTTTTTquery runs for the MS MARCO _document_ ranking task.
 The MS MARCO document ranking task is similar to the MS MARCO passage ranking task, but the corpus contains longer documents, which need to be split into shorter passages before being fed to docTTTTTquery.
 
 Like the instructions for MS MARCO passage ranking task, we explain the process in reverse order (i.e., indexing, expansion, query prediction), since we believe there are more users interested in experimenting with the expanded index than expanding the document themselves.
