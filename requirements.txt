@@ -1,4 +1,4 @@
 sentencepiece==0.1.95
 spacy==2.1.6
-tensorflow==2.4.1
+tensorflow==2.5.0
 transformers==4.4.2
