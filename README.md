@@ -506,6 +506,8 @@ for ITER in {00..32}; do
 done
 ```
 
+Note that we use spacy 2.1.6 to do so. Other versions generate different segments, which change retrieval results.
+
 We are now ready to run inference. Since this is a costly step, we recommend using Google Cloud
 with TPUs to run it faster.
 
