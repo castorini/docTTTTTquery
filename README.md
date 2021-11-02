@@ -541,3 +541,26 @@ for ITER in {00..32}; do
       --gin_param="utils.tpu_mesh_shape.tpu_topology ='v3-8'
 done
 ```
+
+## MS MARCO v2 Passage Expansion
+
+export NUM_QUERIES=20
+python3 $DTQ/msmarco-v2/augment_corpus.py --hgf_d2q_dataset castorini/msmarco_v2_passage_doc2query-t5_expansions \
+        --original_psg_path /store/collections/msmarco/msmarco_v2_passage_augmented \
+        --output_psg_path /store/scratch/rpradeep/msmarco-v2/collections/msmarco_v2_passage_augmented_d2q-t5_${NUM_QUERIES} \
+        --num_workers 70 \
+        --num_queries ${NUM_QUERIES} \
+        --task passage \
+        --cache_dir /store/scratch/rpradeep/datasets-test
+
+
+## MS MARcO v2 Document Expansion
+
+export NUM_QUERIES=10
+python3 $DTQ/msmarco-v2/augment_corpus.py --hgf_d2q_dataset castorini/msmarco_v2_doc_segmented_doc2query-t5_expansions \
+        --original_psg_path /store/collections/msmarco/msmarco_v2_doc_segmented \
+        --output_psg_path /store/scratch/rpradeep/msmarco-v2/collections/msmarco_v2_doc_segmented_d2q-t5_${NUM_QUERIES} \
+        --num_workers 60 \
+        --num_queries ${NUM_QUERIES} \
+        --task segment \
+        --cache_dir /store/scratch/rpradeep/datasets-test
