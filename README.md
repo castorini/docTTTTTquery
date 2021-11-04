@@ -544,7 +544,8 @@ done
 
 ## MS MARCO V2 Passage Expansion
 
-Here we provide instructions on how to reproduce our docTTTTTquery results for the MS MARCO V2 passage ranking task with the Anserini IR toolkit, using predicted queries which we [opensource](https://huggingface.co/datasets/castorini/msmarco_v2_passage_doc2query-t5_expansions/viewer/default/train) using the [🤗 Datasets library](https://github.com/huggingface/datasets).
+Here we provide instructions on how to reproduce our docTTTTTquery results for the MS MARCO V2 passage ranking task with the Anserini IR toolkit, using predicted queries.
+We opensource the [predicted queries](https://huggingface.co/datasets/castorini/msmarco_v2_passage_doc2query-t5_expansions/viewer/default/train) using the [🤗 Datasets library](https://github.com/huggingface/datasets).
 Note that this is a very large dataset, so we ran the docTTTTTquery inference step across multiple TPUs.
 In fact, there is a signficant blow-up in the dataset size compared to MS MARCO v1, because of which we choose to only generate 20 queries per passage.
 Also, we use a different docTTTTTquery model trained on the MS MARCO v2 passage ranking dataset.
@@ -611,7 +612,8 @@ recall_1000             all     0.7659
 
 ## MS MARCO V2 (Segmented) Document Expansion
 
-This guide provide sinstructions on how to reproduce our docTTTTTquery results for the MS MARCO V2 document ranking task with the Anserini IR toolkit, using predicted queries which we [opensource](https://huggingface.co/datasets/castorini/msmarco_v2_doc_segmented_doc2query-t5_expansions/viewer/default/train) using the [🤗 Datasets library](https://github.com/huggingface/datasets).
+This guide provide sinstructions on how to reproduce our docTTTTTquery results for the MS MARCO V2 document ranking task with the Anserini IR toolkit, using predicted queries.
+We opensource the [predicted queries](https://huggingface.co/datasets/castorini/msmarco_v2_doc_segmented_doc2query-t5_expansions/viewer/default/train) using the [🤗 Datasets library](https://github.com/huggingface/datasets).
 Note that this is a very large dataset, so we ran the docTTTTTquery inference step across multiple TPUs.
 Also, we use a different docTTTTTquery model trained on the MS MARCO v2 passage ranking dataset.
 
