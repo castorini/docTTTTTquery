@@ -595,12 +595,15 @@ Evaluation:
 $ tools/eval/trec_eval.9.0.4/trec_eval -c -M 100 -m map -m recip_rank src/main/resources/topics-and-qrels/qrels.msmarco-v2-passage.dev.txt runs/run.msmarco-v2-passage-augmented-d2q-t5-${NUM_QUERIES}.dev.txt
 map                     all     0.1160
 recip_rank              all     0.1172
+
 $ tools/eval/trec_eval.9.0.4/trec_eval -c -m recall.100,1000 src/main/resources/topics-and-qrels/qrels.msmarco-v2-passage.dev.txt runs/run.msmarco-v2-passage-augmented-d2q-t5-${NUM_QUERIES}.dev.txt
 recall_100              all     0.5039
 recall_1000             all     0.7647
+
 $ tools/eval/trec_eval.9.0.4/trec_eval -c -M 100 -m map -m recip_rank src/main/resources/topics-and-qrels/qrels.msmarco-v2-passage.dev2.txt runs/run.msmarco-v2-passage-augmented-d2q-t5-${NUM_QUERIES}.dev2.txt
 map                     all     0.1158
 recip_rank              all     0.1170
+
 $ tools/eval/trec_eval.9.0.4/trec_eval -c -m recall.100,1000 src/main/resources/topics-and-qrels/qrels.msmarco-v2-passage.dev2.txt runs/run.msmarco-v2-passage-augmented-d2q-t5-${NUM_QUERIES}.dev2.txt
 recall_100              all     0.5158
 recall_1000             all     0.7659
@@ -612,7 +615,7 @@ This guide provide sinstructions on how to reproduce our docTTTTTquery results f
 Note that this is a very large dataset, so we ran the docTTTTTquery inference step across multiple TPUs.
 Also, we use a different docTTTTTquery model trained on the MS MARCO v2 passage ranking dataset.
 
-We use the [metadata-augmented passage corpus](https://github.com/castorini/anserini/blob/master/docs/experiments-msmarco-v2.md#document-collection-segmented) which was shown to have better effectiveness.
+We use the [segmented document corpus](https://github.com/castorini/anserini/blob/master/docs/experiments-msmarco-v2.md#document-collection-segmented) which was shown to have better effectiveness.
 
 First, we download the expanded queries dataset and expand this corpus using `NUM_QUERIES` queries per passage:
 
@@ -644,7 +647,7 @@ Note that this index does not store any "extras" (positions, document vectors, r
 
 Finally, we can perform runs on the dev queries (both sets):
 ```bash
- target/appassembler/bin/SearchCollection -index /store/scratch/rpradeep/msmarco-v2/indexes/msmarco-v2-doc-segmented-d2q-t5-${NUM_QUERIES} \
+target/appassembler/bin/SearchCollection -index /store/scratch/rpradeep/msmarco-v2/indexes/msmarco-v2-doc-segmented-d2q-t5-${NUM_QUERIES} \
   -topicreader TsvInt -topics src/main/resources/topics-and-qrels/topics.msmarco-v2-doc.dev.txt \
   -output runs/run.msmarco-v2-doc-segmented-d2q-t5-${NUM_QUERIES}.dev.txt \
   -bm25 -hits 10000 -selectMaxPassage -selectMaxPassage.delimiter "#" -selectMaxPassage.hits 1000
@@ -661,12 +664,15 @@ Evaluation:
 $ tools/eval/trec_eval.9.0.4/trec_eval -c -M 100 -m map -m recip_rank src/main/resources/topics-and-qrels/qrels.msmarco-v2-doc.dev.txt runs/run.msmarco-v2-doc-segmented-d2q-t5-${NUM_QUERIES}.dev.txt
 map                     all     0.2203
 recip_rank              all     0.2226
+
 $ tools/eval/trec_eval.9.0.4/trec_eval -c -m recall.100,1000 src/main/resources/topics-and-qrels/qrels.msmarco-v2-doc.dev.txt runs/run.msmarco-v2-doc-segmented-d2q-t5-${NUM_QUERIES}.dev.txt
 recall_100              all     0.7297
 recall_1000             all     0.8982
+
 $ tools/eval/trec_eval.9.0.4/trec_eval -c -M 100 -m map -m recip_rank src/main/resources/topics-and-qrels/qrels.msmarco-v2-doc.dev2.txt runs/run.msmarco-v2-doc-segmented-d2q-t5-${NUM_QUERIES}.dev2.txt
 map                     all     0.2205
 recip_rank              all     0.2234
+
 $ tools/eval/trec_eval.9.0.4/trec_eval -c -m recall.100,1000 src/main/resources/topics-and-qrels/qrels.msmarco-v2-doc.dev2.txt runs/run.msmarco-v2-doc-segmented-d2q-t5-${NUM_QUERIES}.dev2.txt
 recall_100              all     0.7316
 recall_1000             all     0.8952
