@@ -541,3 +541,141 @@ for ITER in {00..32}; do
       --gin_param="utils.tpu_mesh_shape.tpu_topology ='v3-8'
 done
 ```
+
+## MS MARCO V2 Passage Expansion
+
+Here we provide instructions on how to reproduce our docTTTTTquery results for the MS MARCO V2 passage ranking task with the Anserini IR toolkit, using predicted queries.
+We opensource the [predicted queries](https://huggingface.co/datasets/castorini/msmarco_v2_passage_doc2query-t5_expansions/viewer/default/train) using the [🤗 Datasets library](https://github.com/huggingface/datasets).
+Note that this is a very large dataset, so we ran the docTTTTTquery inference step across multiple TPUs.
+In fact, there is a signficant blow-up in the dataset size compared to MS MARCO v1, because of which we choose to only generate 20 queries per passage.
+Also, we use a different docTTTTTquery model trained on the MS MARCO v2 passage ranking dataset.
+
+We use the [metadata-augmented passage corpus](https://github.com/castorini/anserini/blob/master/docs/experiments-msmarco-v2.md#passage-collection-augmented) which was shown to have better effectiveness.
+
+First, we download the expanded queries dataset and expand this corpus using `NUM_QUERIES` queries per passage:
+```bash
+export NUM_QUERIES=20
+python3 msmarco-v2/augment_corpus.py --hgf_d2q_dataset castorini/msmarco_v2_passage_doc2query-t5_expansions \
+        --original_psg_path collections/msmarco_v2_passage_augmented \
+        --output_psg_path collections/msmarco_v2_passage_augmented_d2q-t5_${NUM_QUERIES} \
+        --num_workers 70 \
+        --num_queries ${NUM_QUERIES} \
+        --task passage \
+        --cache_dir /path/to/cache/dir
+```
+The dataset is downloaded and processed in the cache directory after which the corpus is expanded too.
+So make sure you have enough storage space (around 300 GB for this entire task).
+If the dataset is not already cached, this script would take about 18 hours.
+If it is, you can expect it to finish in about 10 hours.
+
+Upon completion, index the expanded passages with Anserini:
+```bash
+sh target/appassembler/bin/IndexCollection -collection MsMarcoV2PassageCollection \
+ -generator DefaultLuceneDocumentGenerator -threads 70 \
+ -input collections/msmarco_v2_passage_augmented_d2q-t5_${NUM_QUERIES} \
+ -index indexes/msmarco-v2-passage-augmented-d2q-t5-${NUM_QUERIES} \
+ -optimize
+```
+Note that this index does not store any "extras" (positions, document vectors, raw documents, etc.) because we don't need any of these for BM25 retrieval.
+
+
+Finally, we can perform runs on the dev queries (both sets):
+
+```bash
+target/appassembler/bin/SearchCollection -index indexes/msmarco-v2-passage-augmented-d2q-t5-${NUM_QUERIES} \
+ -topicreader TsvInt -topics src/main/resources/topics-and-qrels/topics.msmarco-v2-passage.dev.txt \
+ -output runs/run.msmarco-v2-passage-augmented-d2q-t5-${NUM_QUERIES}.dev.txt -bm25 -hits 1000
+
+target/appassembler/bin/SearchCollection -index indexes/msmarco-v2-passage-augmented-d2q-t5-${NUM_QUERIES} \
+ -topicreader TsvInt -topics src/main/resources/topics-and-qrels/topics.msmarco-v2-passage.dev2.txt \
+ -output runs/run.msmarco-v2-passage-augmented-d2q-t5-${NUM_QUERIES}.dev2.txt -bm25 -hits 1000
+```
+
+Evaluation:
+```bash
+$ tools/eval/trec_eval.9.0.4/trec_eval -c -M 100 -m map -m recip_rank src/main/resources/topics-and-qrels/qrels.msmarco-v2-passage.dev.txt runs/run.msmarco-v2-passage-augmented-d2q-t5-${NUM_QUERIES}.dev.txt
+map                     all     0.1160
+recip_rank              all     0.1172
+
+$ tools/eval/trec_eval.9.0.4/trec_eval -c -m recall.100,1000 src/main/resources/topics-and-qrels/qrels.msmarco-v2-passage.dev.txt runs/run.msmarco-v2-passage-augmented-d2q-t5-${NUM_QUERIES}.dev.txt
+recall_100              all     0.5039
+recall_1000             all     0.7647
+
+$ tools/eval/trec_eval.9.0.4/trec_eval -c -M 100 -m map -m recip_rank src/main/resources/topics-and-qrels/qrels.msmarco-v2-passage.dev2.txt runs/run.msmarco-v2-passage-augmented-d2q-t5-${NUM_QUERIES}.dev2.txt
+map                     all     0.1158
+recip_rank              all     0.1170
+
+$ tools/eval/trec_eval.9.0.4/trec_eval -c -m recall.100,1000 src/main/resources/topics-and-qrels/qrels.msmarco-v2-passage.dev2.txt runs/run.msmarco-v2-passage-augmented-d2q-t5-${NUM_QUERIES}.dev2.txt
+recall_100              all     0.5158
+recall_1000             all     0.7659
+```
+
+## MS MARCO V2 (Segmented) Document Expansion
+
+This guide provide sinstructions on how to reproduce our docTTTTTquery results for the MS MARCO V2 document ranking task with the Anserini IR toolkit, using predicted queries.
+We opensource the [predicted queries](https://huggingface.co/datasets/castorini/msmarco_v2_doc_segmented_doc2query-t5_expansions/viewer/default/train) using the [🤗 Datasets library](https://github.com/huggingface/datasets).
+Note that this is a very large dataset, so we ran the docTTTTTquery inference step across multiple TPUs.
+Also, we use a different docTTTTTquery model trained on the MS MARCO v2 passage ranking dataset.
+
+We use the [segmented document corpus](https://github.com/castorini/anserini/blob/master/docs/experiments-msmarco-v2.md#document-collection-segmented) which was shown to have better effectiveness.
+
+First, we download the expanded queries dataset and expand this corpus using `NUM_QUERIES` queries per passage:
+
+```bash
+export NUM_QUERIES=10
+python3 msmarco-v2/augment_corpus.py --hgf_d2q_dataset castorini/msmarco_v2_doc_segmented_doc2query-t5_expansions \
+        --original_psg_path collections/msmarco_v2_doc_segmented \
+        --output_psg_path collections/msmarco_v2_doc_segmented_d2q-t5_${NUM_QUERIES} \
+        --num_workers 60 \
+        --num_queries ${NUM_QUERIES} \
+        --task segment \
+        --cache_dir /path/to/cache/dir
+```
+The dataset is downloaded and processed in the cache directory after which the corpus is expanded too.
+So make sure you have enough storage space (around 300 GB for this entire task).
+If the dataset is not already cached, this script would take about 18 hours.
+If it is, you can expect it to finish in about 10 hours.
+
+Upon completion, index the expanded document segments with Anserini:
+```bash
+sh target/appassembler/bin/IndexCollection -collection MsMarcoV2DocCollection \
+ -generator DefaultLuceneDocumentGenerator -threads 60 \
+ -input collections/msmarco_v2_doc_segmented_d2q-t5_${NUM_QUERIES} \
+ -index indexes/msmarco-v2-doc-segmented-d2q-t5-${NUM_QUERIES} \
+ -optimize
+```
+Note that this index does not store any "extras" (positions, document vectors, raw documents, etc.) because we don't need any of these for BM25 retrieval.
+
+
+Finally, we can perform runs on the dev queries (both sets):
+```bash
+target/appassembler/bin/SearchCollection -index /store/scratch/rpradeep/msmarco-v2/indexes/msmarco-v2-doc-segmented-d2q-t5-${NUM_QUERIES} \
+  -topicreader TsvInt -topics src/main/resources/topics-and-qrels/topics.msmarco-v2-doc.dev.txt \
+  -output runs/run.msmarco-v2-doc-segmented-d2q-t5-${NUM_QUERIES}.dev.txt \
+  -bm25 -hits 10000 -selectMaxPassage -selectMaxPassage.delimiter "#" -selectMaxPassage.hits 1000
+
+target/appassembler/bin/SearchCollection -index /store/scratch/rpradeep/msmarco-v2/indexes/msmarco-v2-doc-segmented-d2q-t5-${NUM_QUERIES} \
+  -topicreader TsvInt -topics src/main/resources/topics-and-qrels/topics.msmarco-v2-doc.dev2.txt \
+  -output runs/run.msmarco-v2-doc-segmented-d2q-t5-${NUM_QUERIES}.dev2.txt \
+  -bm25 -hits 10000 -selectMaxPassage -selectMaxPassage.delimiter "#" -selectMaxPassage.hits 1000
+```
+
+
+Evaluation:
+```bash
+$ tools/eval/trec_eval.9.0.4/trec_eval -c -M 100 -m map -m recip_rank src/main/resources/topics-and-qrels/qrels.msmarco-v2-doc.dev.txt runs/run.msmarco-v2-doc-segmented-d2q-t5-${NUM_QUERIES}.dev.txt
+map                     all     0.2203
+recip_rank              all     0.2226
+
+$ tools/eval/trec_eval.9.0.4/trec_eval -c -m recall.100,1000 src/main/resources/topics-and-qrels/qrels.msmarco-v2-doc.dev.txt runs/run.msmarco-v2-doc-segmented-d2q-t5-${NUM_QUERIES}.dev.txt
+recall_100              all     0.7297
+recall_1000             all     0.8982
+
+$ tools/eval/trec_eval.9.0.4/trec_eval -c -M 100 -m map -m recip_rank src/main/resources/topics-and-qrels/qrels.msmarco-v2-doc.dev2.txt runs/run.msmarco-v2-doc-segmented-d2q-t5-${NUM_QUERIES}.dev2.txt
+map                     all     0.2205
+recip_rank              all     0.2234
+
+$ tools/eval/trec_eval.9.0.4/trec_eval -c -m recall.100,1000 src/main/resources/topics-and-qrels/qrels.msmarco-v2-doc.dev2.txt runs/run.msmarco-v2-doc-segmented-d2q-t5-${NUM_QUERIES}.dev2.txt
+recall_100              all     0.7316
+recall_1000             all     0.8952
+```
