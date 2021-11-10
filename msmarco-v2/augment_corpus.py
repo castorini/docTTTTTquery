@@ -56,7 +56,7 @@ def augment_corpus_with_doc2query_t5(dataset, f_out, start, end, num_queries, te
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-        description='Concatenate MS MARCO v2 corpus with predicted queries')
+        description='Concatenate MS MARCO V2 corpus with predicted queries')
     parser.add_argument('--hgf_d2q_dataset', required=True, 
                         choices=['castorini/msmarco_v2_passage_doc2query-t5_expansions',
                         'castorini/msmarco_v2_doc_segmented_doc2query-t5_expansions'])
