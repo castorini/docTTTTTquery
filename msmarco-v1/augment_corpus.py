@@ -26,7 +26,7 @@ def augment_corpus_with_doc2query_t5(dataset, searcher, f_out, num_queries, text
     print('Output docs...')
     output = open(f_out, 'w')
     counter = 0
-    for i in tqdm(len(dataset)):
+    for i in tqdm(range(len(dataset))):
         docid = dataset[i]["id"]
         output_dict = json.loads(searcher.doc(docid).raw())
         concatenated_queries = " ".join(dataset[i]["predicted_queries"][:num_queries])
