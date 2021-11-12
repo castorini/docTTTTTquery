@@ -62,7 +62,8 @@ if __name__ == '__main__':
         description='Concatenate MS MARCO V2 corpus with predicted queries')
     parser.add_argument('--hgf_d2q_dataset', required=True, 
                         choices=['castorini/msmarco_v2_passage_doc2query-t5_expansions',
-                        'castorini/msmarco_v2_doc_segmented_doc2query-t5_expansions'])
+                        'castorini/msmarco_v2_doc_segmented_doc2query-t5_expansions',
+                        'castorini/msmarco_v2_doc_doc2query-t5_expansions'])
     parser.add_argument('--original_psg_path', required=True, help='Input corpus path')
     parser.add_argument('--output_psg_path', required=True, help='Output file for d2q-t5 augmented corpus.')
     parser.add_argument('--num_workers', default=1, type=int, help='Number of workers used.')
