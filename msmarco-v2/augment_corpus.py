@@ -87,7 +87,8 @@ if __name__ == '__main__':
         pool.apply_async(load_docs, (docid_to_doc, psg_files[i*num_files_per_worker: min(len(dataset), (i+1)*num_files_per_worker)], args.task))
     pool.close()
     pool.join()       
-    assert len(docid_to_doc) == len(dataset)
+    if len(docid_to_doc) != len(dataset):
+        print("Total number of expanded queries: {}".format(len(dataset)))
     print('Total passages loaded: {}'.format(len(docid_to_doc)))
 
 
