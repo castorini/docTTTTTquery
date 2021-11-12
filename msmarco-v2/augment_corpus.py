@@ -46,7 +46,10 @@ def augment_corpus_with_doc2query_t5(dataset, f_out, start, end, num_queries, te
     for i in tqdm(range(start, end)):
         docid = dataset[i]["id"]
         output_dict = docid_to_doc[docid]
-        concatenated_queries = " ".join(dataset[i]["predicted_queries"][:num_queries])
+        if num_queries == -1:
+            concatenated_queries = " ".join(dataset[i]["predicted_queries"])
+        else:
+            concatenated_queries = " ".join(dataset[i]["predicted_queries"][:num_queries])
         output_dict[text_key] = f"{output_dict[text_key]} {concatenated_queries}"
         counter += 1
         output.write(json.dumps(output_dict) + '\n')  
@@ -63,7 +66,7 @@ if __name__ == '__main__':
     parser.add_argument('--original_psg_path', required=True, help='Input corpus path')
     parser.add_argument('--output_psg_path', required=True, help='Output file for d2q-t5 augmented corpus.')
     parser.add_argument('--num_workers', default=1, type=int, help='Number of workers used.')
-    parser.add_argument('--num_queries', default=20, type=int, help='Number of expansions used.')
+    parser.add_argument('--num_queries', default=-1, type=int, help='Number of expansions used.')
     parser.add_argument('--task', default="passage", type=str, help='One of passage or document.')
     parser.add_argument('--cache_dir', default=".", type=str, help='Path to cache the hgf dataset')
     args = parser.parse_args()
