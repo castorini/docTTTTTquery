@@ -22,14 +22,21 @@ from tqdm import tqdm
 import glob
 from pyserini.search import SimpleSearcher
 
-def augment_corpus_with_doc2query_t5(dataset, searcher, f_out, num_queries, text_key="contents"):
+def augment_corpus_with_doc2query_t5(dataset, searcher, f_out, num_queries, hgf_d2q_dataset, text_key="contents"):
     print('Output docs...')
     output = open(f_out, 'w')
     counter = 0
     for i in tqdm(range(len(dataset))):
         docid = dataset[i]["id"]
         try:
-            output_dict = json.loads(searcher.doc(docid).raw())
+            if hgf_d2q_dataset == 'castorini/msmarco_v1_doc_doc2query-t5_expansions':
+                split_sentences = searcher.doc(docid).raw().split('\n')
+                output_dict = {}
+                output_dict["id"] = docid
+                text_content = " ".join(split_sentences[3:-2])
+                output_dict["contents"] = f"{split_sentences[1]} {split_sentences[2]}. {text_content}"
+            else:
+                output_dict = json.loads(searcher.doc(docid).raw())
         except:
             print(f"{docid} not found in index")
             continue
@@ -64,5 +71,5 @@ if __name__ == '__main__':
         searcher = SimpleSearcher.from_prebuilt_index(args.prebuilt_index)
     else:
         searcher = SimpleSearcher(args.prebuilt_index)
-    augment_corpus_with_doc2query_t5(dataset, searcher, os.path.join(args.output_psg_path, "docs.jsonl"), args.num_queries)
+    augment_corpus_with_doc2query_t5(dataset, searcher, os.path.join(args.output_psg_path, "docs.jsonl"), args.num_queries, args.hgf_d2q_dataset)
     print('Done!')
