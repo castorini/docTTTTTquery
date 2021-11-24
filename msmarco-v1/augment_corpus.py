@@ -31,7 +31,8 @@ def augment_corpus_with_doc2query_t5(dataset, searcher, f_out, num_queries, text
         try:
             output_dict = json.loads(searcher.doc(docid).raw())
         except:
-            print(docid)
+            print(f"{docid} not found in index")
+            continue
         if num_queries == -1:
             concatenated_queries = " ".join(dataset[i]["predicted_queries"])
         else:
@@ -56,10 +57,12 @@ if __name__ == '__main__':
     parser.add_argument('--cache_dir', default=".", type=str, help='Path to cache the hgf dataset')
     args = parser.parse_args()
 
+    os.makedirs(args.output_psg_path, exist_ok=True)
+
     dataset = load_dataset(args.hgf_d2q_dataset, split="train", cache_dir=args.cache_dir)
     if args.prebuilt_index in ['msmarco-passage', 'msmarco-doc-per-passage', 'msmarco-doc']:
         searcher = SimpleSearcher.from_prebuilt_index(args.prebuilt_index)
     else:
         searcher = SimpleSearcher(args.prebuilt_index)
-    augment_corpus_with_doc2query_t5(dataset, searcher, args.output_psg_path, args.num_queries)
+    augment_corpus_with_doc2query_t5(dataset, searcher, os.path.join(args.output_psg_path, "docs.jsonl"), args.num_queries)
     print('Done!')
