@@ -19,34 +19,23 @@ from datasets import load_dataset
 import os
 import json
 from tqdm import tqdm
-import glob
 from pyserini.search import SimpleSearcher
 
-def augment_corpus_with_doc2query_t5(dataset, searcher, f_out, num_queries, hgf_d2q_dataset, text_key="contents"):
+
+def augment_corpus_with_doc2query_t5(dataset, searcher, f_out, num_queries, text_key="contents"):
     print('Output docs...')
     output = open(f_out, 'w')
     counter = 0
     for i in tqdm(range(len(dataset))):
         docid = dataset[i]["id"]
-        try:
-            if hgf_d2q_dataset == 'castorini/msmarco_v1_doc_doc2query-t5_expansions':
-                split_sentences = searcher.doc(docid).raw().split('\n')
-                output_dict = {}
-                output_dict["id"] = docid
-                text_content = " ".join(split_sentences[3:-2])
-                output_dict["contents"] = f"{split_sentences[1]} {split_sentences[2]}. {text_content}"
-            else:
-                output_dict = json.loads(searcher.doc(docid).raw())
-        except:
-            print(f"{docid} not found in index")
-            continue
+        output_dict = json.loads(searcher.doc(docid).raw())
         if num_queries == -1:
             concatenated_queries = " ".join(dataset[i]["predicted_queries"])
         else:
             concatenated_queries = " ".join(dataset[i]["predicted_queries"][:num_queries])
-        output_dict[text_key] = f"{output_dict[text_key]} {concatenated_queries}"
+        output_dict[text_key] = f"{output_dict[text_key]}\n{concatenated_queries}"
         counter += 1
-        output.write(json.dumps(output_dict) + '\n')  
+        output.write(json.dumps(output_dict) + '\n')
     output.close()
     print(f'{counter} lines output. Done!')
 
@@ -54,10 +43,10 @@ def augment_corpus_with_doc2query_t5(dataset, searcher, f_out, num_queries, hgf_
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Concatenate MS MARCO V1 corpus with predicted queries')
-    parser.add_argument('--hgf_d2q_dataset', required=True, 
+    parser.add_argument('--hgf_d2q_dataset', required=True,
                         choices=['castorini/msmarco_v1_passage_doc2query-t5_expansions',
-                        'castorini/msmarco_v1_doc_segmented_doc2query-t5_expansions',
-                        'castorini/msmarco_v1_doc_doc2query-t5_expansions'])
+                                 'castorini/msmarco_v1_doc_segmented_doc2query-t5_expansions',
+                                 'castorini/msmarco_v1_doc_doc2query-t5_expansions'])
     parser.add_argument('--prebuilt_index', required=True, help='Prebuilt index name')
     parser.add_argument('--output_psg_path', required=True, help='Output file for d2q-t5 augmented corpus.')
     parser.add_argument('--num_queries', default=-1, type=int, help='Number of expansions used.')
@@ -71,5 +60,8 @@ if __name__ == '__main__':
         searcher = SimpleSearcher.from_prebuilt_index(args.prebuilt_index)
     else:
         searcher = SimpleSearcher(args.prebuilt_index)
-    augment_corpus_with_doc2query_t5(dataset, searcher, os.path.join(args.output_psg_path, "docs.jsonl"), args.num_queries, args.hgf_d2q_dataset)
+    augment_corpus_with_doc2query_t5(dataset,
+                                     searcher,
+                                     os.path.join(args.output_psg_path, "docs.jsonl"),
+                                     args.num_queries)
     print('Done!')
