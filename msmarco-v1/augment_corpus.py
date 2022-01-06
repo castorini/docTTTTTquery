@@ -26,8 +26,10 @@ def augment_corpus_with_doc2query_t5(dataset, searcher, f_out, num_queries, text
     print('Output docs...')
     output = open(f_out, 'w')
     counter = 0
+    set_d2q_ids = set()
     for i in tqdm(range(len(dataset))):
         docid = dataset[i]["id"]
+        set_d2q_ids.add(docid)
         output_dict = json.loads(searcher.doc(docid).raw())
         if num_queries == -1:
             concatenated_queries = " ".join(dataset[i]["predicted_queries"])
@@ -36,8 +38,15 @@ def augment_corpus_with_doc2query_t5(dataset, searcher, f_out, num_queries, text
         output_dict[text_key] = f"{output_dict[text_key]}\n{concatenated_queries}"
         counter += 1
         output.write(json.dumps(output_dict) + '\n')
+    counter_no_exp = 0
+    for i in tqdm(range(searcher.num_docs)):
+        if searcher.doc(i).docid() not in set_d2q_ids:
+            output_dict = json.loads(searcher.doc(i).raw())
+            counter_no_exp += 1
+            output_dict[text_key] = f"{output_dict[text_key]}\n"
+            output.write(json.dumps(output_dict) + '\n')
     output.close()
-    print(f'{counter} lines output. Done!')
+    print(f'{counter + counter_no_exp} lines output. {counter_no_exp} lines with no expansions.')
 
 
 if __name__ == '__main__':
