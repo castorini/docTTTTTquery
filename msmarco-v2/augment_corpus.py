@@ -39,20 +39,21 @@ def load_docs(docid_to_doc, f_ins, text_key="passage"):
                 counter += 1
     print(f'{counter} docs loaded. Done!')
 
+
 def augment_corpus_with_doc2query_t5(dataset, f_out, start, end, num_queries, text_key="passage"):
     print('Output docs...')
     output = open(f_out, 'w')
     counter = 0
     for i in tqdm(range(start, end)):
         docid = dataset[i]["id"]
-        output_dict = docid_to_doc[docid]
+        output_dict = docid_to_doc[docid].replace("\n", " ")
         if num_queries == -1:
             concatenated_queries = " ".join(dataset[i]["predicted_queries"])
         else:
             concatenated_queries = " ".join(dataset[i]["predicted_queries"][:num_queries])
-        output_dict[text_key] = f"{output_dict[text_key]} {concatenated_queries}"
+        output_dict[text_key] = f"{output_dict[text_key]}\n{concatenated_queries}"
         counter += 1
-        output.write(json.dumps(output_dict) + '\n')  
+        output.write(json.dumps(output_dict) + '\n')
     output.close()
     print(f'{counter} lines output. Done!')
 
@@ -60,10 +61,10 @@ def augment_corpus_with_doc2query_t5(dataset, f_out, start, end, num_queries, te
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Concatenate MS MARCO V2 corpus with predicted queries')
-    parser.add_argument('--hgf_d2q_dataset', required=True, 
+    parser.add_argument('--hgf_d2q_dataset', required=True,
                         choices=['castorini/msmarco_v2_passage_doc2query-t5_expansions',
-                        'castorini/msmarco_v2_doc_segmented_doc2query-t5_expansions',
-                        'castorini/msmarco_v2_doc_doc2query-t5_expansions'])
+                                 'castorini/msmarco_v2_doc_segmented_doc2query-t5_expansions',
+                                 'castorini/msmarco_v2_doc_doc2query-t5_expansions'])
     parser.add_argument('--original_psg_path', required=True, help='Input corpus path')
     parser.add_argument('--output_psg_path', required=True, help='Output file for d2q-t5 augmented corpus.')
     parser.add_argument('--num_workers', default=1, type=int, help='Number of workers used.')
@@ -74,30 +75,26 @@ if __name__ == '__main__':
 
     psg_files = glob.glob(os.path.join(args.original_psg_path, '*.gz'))
     os.makedirs(args.output_psg_path, exist_ok=True)
-
-    
     manager = Manager()
     docid_to_doc = manager.dict()
-
-
     dataset = load_dataset(args.hgf_d2q_dataset, split="train", cache_dir=args.cache_dir)
     pool = Pool(args.num_workers)
     num_files_per_worker = (len(psg_files) // args.num_workers)
     for i in range(args.num_workers):
-        pool.apply_async(load_docs, (docid_to_doc, psg_files[i*num_files_per_worker: min(len(dataset), (i+1)*num_files_per_worker)], args.task))
+        pool.apply_async(load_docs, (docid_to_doc, psg_files[i*num_files_per_worker:
+                                                             min(len(dataset), (i+1)*num_files_per_worker)],
+                                     args.task))
     pool.close()
-    pool.join()       
+    pool.join()
     if len(docid_to_doc) != len(dataset):
         print("Total number of expanded queries: {}".format(len(dataset)))
     print('Total passages loaded: {}'.format(len(docid_to_doc)))
-
-
     pool = Pool(args.num_workers)
     num_examples_per_worker = (len(docid_to_doc)//args.num_workers) + 1
     for i in range(args.num_workers):
         f_out = os.path.join(args.output_psg_path, 'dt5q_aug_psg' + str(i) + '.json')
-        pool.apply_async(augment_corpus_with_doc2query_t5 ,(dataset, f_out, 
-                                                            i*(num_examples_per_worker), 
+        pool.apply_async(augment_corpus_with_doc2query_t5, (dataset, f_out,
+                                                            i*(num_examples_per_worker),
                                                             min(len(docid_to_doc), (i+1)*num_examples_per_worker),
                                                             args.num_queries, args.task))
 
