@@ -67,16 +67,18 @@ if __name__ == '__main__':
     if searcher.num_docs != len(dataset):
         print("Total number of expanded queries: {}".format(len(dataset)))
     print('Total passages loaded: {}'.format(searcher.num_docs))
-    pool = Pool(args.num_workers)
-    num_examples_per_worker = (searcher.num_docs//args.num_workers) + 1
-    for i in range(args.num_workers):
-        f_out = os.path.join(args.output_psg_path, 'dt5q_aug_psg' + str(i) + '.json')
-        print(f_out)
-        pool.apply_async(augment_corpus_with_doc2query_t5, (dataset, searcher, f_out,
-                                                            i*(num_examples_per_worker),
-                                                            min(len(dataset), (i+1)*num_examples_per_worker),
-                                                            args.num_queries, args.task))
-    pool.close()
-    pool.join()
-    print('Done!')
+    with Pool(args.num_workers) as pool:
+        for i in range(args.num_workers):
+            f_out = os.path.join(args.output_psg_path, 'dt5q_aug_psg' + str(i) + '.json')
+            print(f_out)
+            start = i * (searcher.num_docs // args.num_workers)
+            end = (i + 1) * (searcher.num_docs // args.num_workers)
+            if i == args.num_workers - 1:
+                end = searcher.num_docs
+            pool.apply_async(augment_corpus_with_doc2query_t5,
+                             args=(dataset, searcher, f_out, start, end, args.num_queries, args.task))
+        pool.close()
+        pool.join()
+
+        print('Done!')
     print(f'{searcher.num_docs} documents and {len(dataset)} expanded documents.')
