@@ -23,10 +23,11 @@ from multiprocessing import Pool
 from pyserini.search import SimpleSearcher
 
 
-def augment_corpus_with_doc2query_t5(dataset, f_out, start, end, num_queries, text_key="passage"):
+def augment_corpus_with_doc2query_t5(dataset, index_path, f_out, start, end, num_queries, text_key="passage"):
     print('Output docs...')
     output = open(f_out, 'w')
     counter = 0
+    searcher = SimpleSearcher(index_path)
     for i in tqdm(range(start, end)):
         docid = dataset[i]["id"]
         output_dict = json.loads(searcher.doc(docid).raw())
@@ -76,7 +77,7 @@ if __name__ == '__main__':
         if i == args.num_workers - 1:
             end = searcher.num_docs
         pool.apply_async(augment_corpus_with_doc2query_t5,
-                         args=(dataset, f_out, start, end, args.num_queries, args.task, ))
+                         args=(dataset, args.index_path, f_out, start, end, args.num_queries, args.task, ))
     pool.close()
     pool.join()
     print('Done!')
