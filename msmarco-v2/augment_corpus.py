@@ -29,7 +29,7 @@ def augment_corpus_with_doc2query_t5(dataset, index, f_out, start, end, num_quer
     counter = 0
     for i in tqdm(range(start, end)):
         docid = dataset[i]["id"]
-        output_dict = json.loads(index.doc(docid).raw())
+        output_dict = {}
         if num_queries == -1:
             concatenated_queries = " ".join(dataset[i]["predicted_queries"])
         else:
@@ -76,8 +76,8 @@ if __name__ == '__main__':
             if i == args.num_workers - 1:
                 end = searcher.num_docs
             d = pool.apply_async(augment_corpus_with_doc2query_t5,
-                             args=(dataset, searcher, f_out, start, end, args.num_queries, args.task))
-            print(d.get())
+                                 args=(dataset, searcher, f_out, start, end, args.num_queries, args.task, ))
+            printd.get())
         pool.close()
         pool.join()
 
