@@ -20,7 +20,7 @@ import os
 import json
 from tqdm import tqdm
 from multiprocessing import Pool
-from pyserini import SimpleSearcher
+from pyserini.search import SimpleSearcher
 
 
 def augment_corpus_with_doc2query_t5(dataset, index, f_out, start, end, num_queries, text_key="passage"):
