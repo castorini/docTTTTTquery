@@ -75,8 +75,9 @@ if __name__ == '__main__':
             end = (i + 1) * (searcher.num_docs // args.num_workers)
             if i == args.num_workers - 1:
                 end = searcher.num_docs
-            pool.apply_async(augment_corpus_with_doc2query_t5,
+            d = pool.apply_async(augment_corpus_with_doc2query_t5,
                              args=(dataset, searcher, f_out, start, end, args.num_queries, args.task))
+            print(d.get())
         pool.close()
         pool.join()
 
