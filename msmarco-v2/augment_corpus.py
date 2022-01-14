@@ -71,11 +71,11 @@ if __name__ == '__main__':
     num_examples_per_worker = (searcher.num_docs//args.num_workers) + 1
     for i in range(args.num_workers):
         f_out = os.path.join(args.output_psg_path, 'dt5q_aug_psg' + str(i) + '.json')
-        print(len(dataset), (i+1)*num_examples_per_worker)
-        pool.apply_async(augment_corpus_with_doc2query_t5(dataset, searcher, f_out,
-                                                          i*(num_examples_per_worker),
-                                                          min(len(dataset), (i+1)*num_examples_per_worker),
-                                                          args.num_queries, args.task))
+        print(f_out)
+        pool.apply_async(augment_corpus_with_doc2query_t5, (dataset, searcher, f_out,
+                                                            i*(num_examples_per_worker),
+                                                            min(len(dataset), (i+1)*num_examples_per_worker),
+                                                            args.num_queries, args.task))
     pool.close()
     pool.join()
     print('Done!')
