@@ -77,8 +77,7 @@ if __name__ == '__main__':
                 end = searcher.num_docs
             pool.apply_async(augment_corpus_with_doc2query_t5,
                              args=(dataset, f_out, start, end, args.num_queries, args.task, ))
-        pool.close()
-        pool.join()
-
-        print('Done!')
+    pool.close()
+    pool.join()
+    print('Done!')
     print(f'{searcher.num_docs} documents and {len(dataset)} expanded documents.')
