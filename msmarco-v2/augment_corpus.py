@@ -29,7 +29,7 @@ def augment_corpus_with_doc2query_t5(dataset, f_out, start, end, num_queries, te
     counter = 0
     for i in tqdm(range(start, end)):
         docid = dataset[i]["id"]
-        output_dict = json.loads(searcher.doc(docid).raw())
+        output_dict = json.loads(index.doc(docid).raw())
         if num_queries == -1:
             concatenated_queries = " ".join(dataset[i]["predicted_queries"])
         else:
@@ -67,16 +67,16 @@ if __name__ == '__main__':
     if searcher.num_docs != len(dataset):
         print("Total number of expanded queries: {}".format(len(dataset)))
     print('Total passages loaded: {}'.format(searcher.num_docs))
-    with Pool(args.num_workers) as pool:
-        for i in range(args.num_workers):
-            f_out = os.path.join(args.output_psg_path, 'dt5q_aug_psg' + str(i) + '.json')
-            print(f_out)
-            start = i * (searcher.num_docs // args.num_workers)
-            end = (i + 1) * (searcher.num_docs // args.num_workers)
-            if i == args.num_workers - 1:
-                end = searcher.num_docs
-            pool.apply_async(augment_corpus_with_doc2query_t5,
-                             args=(dataset, f_out, start, end, args.num_queries, args.task, ))
+    pool = Pool(args.num_workers)
+    for i in range(args.num_workers):
+        f_out = os.path.join(args.output_psg_path, 'dt5q_aug_psg' + str(i) + '.json')
+        print(f_out)
+        start = i * (searcher.num_docs // args.num_workers)
+        end = (i + 1) * (searcher.num_docs // args.num_workers)
+        if i == args.num_workers - 1:
+            end = searcher.num_docs
+        pool.apply_async(augment_corpus_with_doc2query_t5,
+                         args=(dataset, f_out, start, end, args.num_queries, args.task, ))
     pool.close()
     pool.join()
     print('Done!')
