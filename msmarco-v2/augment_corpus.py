@@ -54,6 +54,7 @@ if __name__ == '__main__':
     parser.add_argument('--num_workers', default=1, type=int, help='Number of workers used.')
     parser.add_argument('--num_queries', default=-1, type=int, help='Number of expansions used.')
     parser.add_argument('--cache_dir', default=".", type=str, help='Path to cache the hgf dataset')
+    parser.add_argument('--task', default="passage", type=str, help='One of passage or document.')
     args = parser.parse_args()
 
     os.makedirs(args.output_psg_path, exist_ok=True)
@@ -73,7 +74,7 @@ if __name__ == '__main__':
         pool.apply_async(augment_corpus_with_doc2query_t5, (dataset, searcher, f_out,
                                                             i*(num_examples_per_worker),
                                                             min(len(dataset), (i+1)*num_examples_per_worker),
-                                                            args.num_queries))
+                                                            args.num_queries, args.task))
     pool.close()
     pool.join()
     print('Done!')
