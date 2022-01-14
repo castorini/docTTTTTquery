@@ -19,18 +19,17 @@ from datasets import load_dataset
 import os
 import json
 from tqdm import tqdm
-from multiprocessing import Pool
+from multiprocessing import Pool, Manager
 from pyserini.search import SimpleSearcher
 
 
-def augment_corpus_with_doc2query_t5(dataset, index_path, f_out, start, end, num_queries, text_key="passage"):
+def augment_corpus_with_doc2query_t5(dataset, f_out, start, end, num_queries, text_key="passage"):
     print('Output docs...')
     output = open(f_out, 'w')
     counter = 0
-    searcher = SimpleSearcher(index_path)
     for i in tqdm(range(start, end)):
         docid = dataset[i]["id"]
-        output_dict = json.loads(searcher.doc(docid).raw())
+        output_dict = docid2doc[docid]
         if num_queries == -1:
             concatenated_queries = " ".join(dataset[i]["predicted_queries"])
         else:
@@ -68,6 +67,11 @@ if __name__ == '__main__':
     if searcher.num_docs != len(dataset):
         print("Total number of expanded queries: {}".format(len(dataset)))
     print('Total passages loaded: {}'.format(searcher.num_docs))
+    manager = Manager()
+    docid2doc = manager.dict()
+    for i in tqdm(range(searcher.num_docs)):
+        doc = searcher.doc(i)
+        docid2doc[doc.docid()] = json.loads(doc.raw())
     pool = Pool(args.num_workers)
     for i in range(args.num_workers):
         f_out = os.path.join(args.output_psg_path, 'dt5q_aug_psg' + str(i) + '.json')
@@ -77,7 +81,7 @@ if __name__ == '__main__':
         if i == args.num_workers - 1:
             end = searcher.num_docs
         pool.apply_async(augment_corpus_with_doc2query_t5,
-                         args=(dataset, args.index_path, f_out, start, end, args.num_queries, args.task, ))
+                         args=(dataset, f_out, start, end, args.num_queries, args.task, ))
     pool.close()
     pool.join()
     print('Done!')
