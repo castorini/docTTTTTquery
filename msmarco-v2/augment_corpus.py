@@ -23,13 +23,13 @@ from multiprocessing import Pool
 from pyserini.search import SimpleSearcher
 
 
-def augment_corpus_with_doc2query_t5(dataset, index, f_out, start, end, num_queries, text_key="passage"):
+def augment_corpus_with_doc2query_t5(dataset, f_out, start, end, num_queries, text_key="passage"):
     print('Output docs...')
     output = open(f_out, 'w')
     counter = 0
     for i in tqdm(range(start, end)):
         docid = dataset[i]["id"]
-        output_dict = {}
+        output_dict = {} #json.loads(index.doc(docid).raw())
         if num_queries == -1:
             concatenated_queries = " ".join(dataset[i]["predicted_queries"])
         else:
@@ -75,9 +75,8 @@ if __name__ == '__main__':
             end = (i + 1) * (searcher.num_docs // args.num_workers)
             if i == args.num_workers - 1:
                 end = searcher.num_docs
-            d = pool.apply_async(augment_corpus_with_doc2query_t5,
-                                 args=(dataset, searcher, f_out, start, end, args.num_queries, args.task, ))
-            printd.get())
+            pool.apply_async(augment_corpus_with_doc2query_t5,
+                             args=(dataset, f_out, start, end, args.num_queries, args.task, ))
         pool.close()
         pool.join()
 
