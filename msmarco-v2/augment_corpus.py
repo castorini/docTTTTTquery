@@ -23,13 +23,14 @@ from multiprocessing import Pool, Manager
 from pyserini.search import SimpleSearcher
 
 
-def augment_corpus_with_doc2query_t5(dataset, f_out, start, end, num_queries, text_key="passage"):
+def augment_corpus_with_doc2query_t5(dataset, expdocid_dict, f_out, start, end, num_queries, text_key="passage"):
     print('Output docs...')
     output = open(f_out, 'w')
     counter = 0
     for i in tqdm(range(start, end)):
         docid = dataset[i]["id"]
         output_dict = docid2doc[docid]
+        expdocid_dict[docid] = 1
         if num_queries == -1:
             concatenated_queries = " ".join(dataset[i]["predicted_queries"])
         else:
@@ -73,6 +74,7 @@ if __name__ == '__main__':
         doc = searcher.doc(i)
         docid2doc[doc.docid()] = json.loads(doc.raw())
     pool = Pool(args.num_workers)
+    expdocid_dict = manager.dict()
     for i in range(args.num_workers):
         f_out = os.path.join(args.output_psg_path, 'dt5q_aug_psg' + str(i) + '.json')
         print(f_out)
@@ -81,8 +83,18 @@ if __name__ == '__main__':
         if i == args.num_workers - 1:
             end = searcher.num_docs
         pool.apply_async(augment_corpus_with_doc2query_t5,
-                         args=(dataset, f_out, start, end, args.num_queries, args.task, ))
+                         args=(dataset, expdocid_dict, f_out, start, end, args.num_queries, args.task, ))
     pool.close()
     pool.join()
+
+    if len(docid2doc) != len(expdocid_dict):
+        f_out = os.path.join(args.output_psg_path, 'dt5q_aug_psg' + str(args.num_workers - 1) + '.json')
+        with open(f_out, 'a') as output:
+            for id in tqdm(docid2doc.keys()):
+                if id not in expdocid_dict:
+                    print(f"doc {id} not expanded")
+                    output.write(json.dumps(docid2doc[id]) + '\n')
+                    expdocid_dict[id] = 1
+        assert len(docid2doc) == len(expdocid_dict)
     print('Done!')
     print(f'{searcher.num_docs} documents and {len(dataset)} expanded documents.')
