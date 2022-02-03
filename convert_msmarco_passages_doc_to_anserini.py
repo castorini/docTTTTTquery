@@ -1,6 +1,6 @@
 '''
-Segment the documents and append their url, title, predicted queries to them. Then, they are saved into 
-json which can be used for indexing.
+Segment the documents and append their url, title, predicted queries to them.
+Then, they are saved into json which can be used for indexing.
 '''
 
 import argparse
@@ -9,20 +9,20 @@ import json
 import os
 import spacy
 from tqdm import tqdm
-import re
+
 
 def create_segments(doc_text, max_length, stride):
     doc_text = doc_text.strip()
     doc = nlp(doc_text[:10000])
     sentences = [sent.string.strip() for sent in doc.sents]
     segments = []
-    
     for i in range(0, len(sentences), stride):
         segment = " ".join(sentences[i:i+max_length])
         segments.append(segment)
         if i + max_length >= len(sentences):
             break
     return segments
+
 
 parser = argparse.ArgumentParser(
     description='Concatenate MS MARCO original docs with predicted queries')
@@ -45,10 +45,11 @@ nlp.add_pipe(nlp.create_pipe("sentencizer"))
 
 print('Spliting documents...')
 doc_id_ref = None
-if args.predictions_path == None:
+
+if args.predictions_path is None:
     doc_ids_queries = zip(open(args.doc_ids_path))
 else:
-    doc_ids_queries = zip(open(args.doc_ids_path),open(args.predictions_path))
+    doc_ids_queries = zip(open(args.doc_ids_path), open(args.predictions_path))
 for doc_id_query in tqdm(doc_ids_queries):
     doc_id = doc_id_query[0].strip()
     if doc_id != doc_id_ref:
@@ -62,15 +63,14 @@ for doc_id_query in tqdm(doc_ids_queries):
     doc_seg = f'{doc_id}#{seg_id}'
     if seg_id < len(segments):
         segment = segments[seg_id]
-        if args.predictions_path == None:
+        if args.predictions_path is None:
             expanded_text = f'{doc_url} {doc_title} {segment}'
         else:
             predicted_queries_partial = doc_id_query[1]
             expanded_text = f'{doc_url} {doc_title} {segment} {predicted_queries_partial}'
         output_dict = {'id': doc_seg, 'contents': expanded_text}
-        f_out.write(json.dumps(output_dict) + '\n')  
-    doc_id_ref = doc_id  
-    
+        f_out.write(json.dumps(output_dict) + '\n')
+    doc_id_ref = doc_id
 f_corpus.close()
 f_out.close()
 print('Done!')

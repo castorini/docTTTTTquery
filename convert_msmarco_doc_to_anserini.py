@@ -45,7 +45,6 @@ for doc_id_ref, predicted_queries_partial in tqdm(zip(open(args.doc_ids_path),
 
 output_dict = generate_output_dict(doc, predicted_queries)
 f_out.write(json.dumps(output_dict) + '\n')
-            
 f_corpus.close()
 f_out.close()
 print('Done!')
