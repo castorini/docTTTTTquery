@@ -65,7 +65,7 @@ if __name__ == '__main__':
     os.makedirs(args.output_psg_path, exist_ok=True)
 
     dataset = load_dataset(args.hgf_d2q_dataset, split="train", cache_dir=args.cache_dir)
-    if args.prebuilt_index in ['msmarco-passage', 'msmarco-doc-per-passage', 'msmarco-doc']:
+    if args.prebuilt_index in ['msmarco-v1-passage', 'msmarco-v1-doc-segmented', 'msmarco-v1-doc']:
         searcher = SimpleSearcher.from_prebuilt_index(args.prebuilt_index)
     else:
         searcher = SimpleSearcher(args.prebuilt_index)
