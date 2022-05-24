@@ -1,5 +1,5 @@
 sentencepiece==0.1.95
 spacy==2.1.6
-tensorflow==2.4.1
+tensorflow==2.6.4
 transformers>=4.6.0
 datasets
